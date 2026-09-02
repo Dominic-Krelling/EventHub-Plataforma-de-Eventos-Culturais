@@ -19,9 +19,9 @@ app.use('/api', indexRouter);
 
 app.use((req, res) => {
     res.status(404).json({
-        sucess: false,
+        success: false,
         message: 'Rota nao encontrada.',
-        error: []
+        errors: []
     });
 });
 

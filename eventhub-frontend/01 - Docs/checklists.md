@@ -1,0 +1,33 @@
+- [x] node \-v e npm \-v conferidos   
+- [x] Pasta \-api criada, separada da pasta do front   
+- [x] package.json gerado com npm init \-y   
+- [x] express , cors , dotenv , morgan instalados como dependências   
+- [x] nodemon instalado como devDependency   
+- [x] Scripts start e dev configurados no package.json   
+- [x] Pastas bin/ , config/ , middlewares/ , modules/ , routes/ criadas   
+- [x] .gitignore criado com node\_modules/ e .env   
+- [x] middlewares/apiResponse.js criado com as funções success e error   
+- [x] routes/index.js criado, com name / message adaptados ao nome do seu projeto   
+- [x] Campo data.status escrito exatamente assim (minúsculo, sem variação)   
+- [x] .env criado com PORT e CORS\_ORIGIN corretos para o seu projeto   
+- [x] app.js criado, montando indexRouter sob o prefixo /api   
+- [x] bin/www criado   
+- [x] npm run dev sobe o servidor sem erros, exibindo a mensagem de confirmação   
+- [x] curl http://localhost:3000/api (ou a porta que você escolheu) responde o JSON esperado, com o nome do seu projeto   
+- [x] curl confirmou que a sua API (Parte A) está respondendo — se não respondeu, volte à Parte A antes de continuar   
+- [x] npm run dev abriu a página padrão do Vite \+ Vue em http://localhost:5173   
+- [x] Estrutura de pastas criada   
+- [x] HelloWorld.vue removido e style.css limpo   
+- [x] .env criado com a VITE\_API\_URL apontando para a sua API   
+- [x] .gitignore configurado   
+- [x] Tabela de tradução "funcionalidade → tela" preenchida para o seu projeto   
+- [x] Uma tela placeholder criada para cada linha da tabela   
+- [x] src/router/index.js criado com todas as rotas do seu sistema   
+- [x] Router registrado em main.js   
+- [x] Navegando manualmente pela URL, cada rota carrega a tela correspondente   
+- [x] TheNavbar.vue , TheSidebar.vue e TheFooter.vue criados, com links para as rotas do seu projeto   
+- [x] Layout montado em App.vue , com no lugar certo   
+- [x] Ao navegar entre rotas, Navbar/Sidebar/Footer permanecem fixos e só o conteúdo central troca   
+- [x] Landing Page exibindo "Status da API: online" com dados reais da sua API   
+- [x] Erro de CORS reproduzido intencionalmente e depois corrigido, com prints/anotações do que apareceu no Console e no Network do DevTools, e também do que apareceu (ou não) no terminal da API   
+      
