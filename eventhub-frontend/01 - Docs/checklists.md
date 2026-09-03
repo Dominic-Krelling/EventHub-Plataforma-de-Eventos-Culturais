@@ -1,33 +1,76 @@
-- [x] node \-v e npm \-v conferidos   
-- [x] Pasta \-api criada, separada da pasta do front   
-- [x] package.json gerado com npm init \-y   
-- [x] express , cors , dotenv , morgan instalados como dependências   
-- [x] nodemon instalado como devDependency   
-- [x] Scripts start e dev configurados no package.json   
-- [x] Pastas bin/ , config/ , middlewares/ , modules/ , routes/ criadas   
-- [x] .gitignore criado com node\_modules/ e .env   
-- [x] middlewares/apiResponse.js criado com as funções success e error   
-- [x] routes/index.js criado, com name / message adaptados ao nome do seu projeto   
-- [x] Campo data.status escrito exatamente assim (minúsculo, sem variação)   
-- [x] .env criado com PORT e CORS\_ORIGIN corretos para o seu projeto   
-- [x] app.js criado, montando indexRouter sob o prefixo /api   
-- [x] bin/www criado   
-- [x] npm run dev sobe o servidor sem erros, exibindo a mensagem de confirmação   
-- [x] curl http://localhost:3000/api (ou a porta que você escolheu) responde o JSON esperado, com o nome do seu projeto   
-- [x] curl confirmou que a sua API (Parte A) está respondendo — se não respondeu, volte à Parte A antes de continuar   
-- [x] npm run dev abriu a página padrão do Vite \+ Vue em http://localhost:5173   
-- [x] Estrutura de pastas criada   
-- [x] HelloWorld.vue removido e style.css limpo   
-- [x] .env criado com a VITE\_API\_URL apontando para a sua API   
-- [x] .gitignore configurado   
-- [x] Tabela de tradução "funcionalidade → tela" preenchida para o seu projeto   
-- [x] Uma tela placeholder criada para cada linha da tabela   
-- [x] src/router/index.js criado com todas as rotas do seu sistema   
-- [x] Router registrado em main.js   
-- [x] Navegando manualmente pela URL, cada rota carrega a tela correspondente   
-- [x] TheNavbar.vue , TheSidebar.vue e TheFooter.vue criados, com links para as rotas do seu projeto   
-- [x] Layout montado em App.vue , com no lugar certo   
-- [x] Ao navegar entre rotas, Navbar/Sidebar/Footer permanecem fixos e só o conteúdo central troca   
-- [x] Landing Page exibindo "Status da API: online" com dados reais da sua API   
-- [x] Erro de CORS reproduzido intencionalmente e depois corrigido, com prints/anotações do que apareceu no Console e no Network do DevTools, e também do que apareceu (ou não) no terminal da API   
-      
+# Checklist — Atividade Aula 02 — EventHub
+
+## Parte A — Backend
+
+### Etapa 1 — Criando o módulo search
+- [X] Pasta `modules/search/` criada.
+- [X] `searchService.js` criado usando `events` e `users`.
+
+### Etapa 2 — Controller
+- [X] `searchController.js` criado.
+- [X] Usa `exports.search`.
+- [X] Lê `req.query.q`.
+- [X] Retorna `query`, `events` e `users`.
+
+### Etapa 3 — Rota
+- [X] `searchRoutes.js` criado.
+- [X] `GET /search` configurado.
+- [X] Rota pública.
+
+### Etapa 4 — Registro em app.js
+- [X] `searchRoutes` importado.
+- [X] `app.use('/api', searchRoutes)` adicionado.
+- [X] API reiniciou sem erros.
+
+### Etapa 5 — Testes
+- [X] `GET /api/search?q=teste` testado.
+- [X] `GET /api/search` testado.
+- [X] `GET /api` continua funcionando.
+
+## Parte B — Frontend
+
+### Etapa 1 — Axios
+- [X] `src/services/api.js` criado.
+- [X] Axios configurado com `VITE_API_URL`.
+
+### Etapa 2 — Interceptor
+- [X] Interceptor de resposta configurado.
+- [X] Sucesso retorna `response.data`.
+- [X] Erros `4xx/5xx` são normalizados.
+- [X] Erro de rede é normalizado.
+- [X] Erro de configuração é normalizado.
+- [X] Comentário explicativo colocado no topo de `api.js`.
+
+### Etapa 3 — Services
+- [X] `authService.js` criado.
+- [X] `register()` criado.
+- [X] `login()` criado.
+- [X] `logout()` criado.
+- [X] `searchService.js` criado.
+- [X] `search()` usa `params: { q: query }`.
+- [X] `systemService.js` criado.
+- [X] `getApiStatus()` criado.
+
+### Etapa 4 — Landing Page
+- [X] `LandingView.vue` deixou de usar `fetch`.
+- [X] Landing usa `getApiStatus()`.
+- [X] Página continua mostrando `Status da API: online`.
+
+### Etapa 5 — Validação da busca
+- [X] Teste temporário `search('a')` realizado.
+- [X] Console mostrou `Busca OK:`.
+- [X] Objeto retornado contém `query`, `events` e `users`.
+- [X] Erro de rede foi provocado com a API desligada.
+- [X] Console mostrou a mensagem amigável do interceptor.
+- [X] API foi religada.
+- [X] Bloco temporário `search('a')` foi removido da Landing.
+
+## Entrega
+- [X] Ficha da Aula 01 atualizada com `events`.
+- [X] Pasta `01 - Docs/atividade02/` criada.
+- [X] Print do `curl /api/search?q=teste` salvo.
+- [X] Print do Console com `Busca OK:` salvo.
+- [X] Print do erro de rede salvo.
+- [X] Comentário do interceptor presente em `api.js`.
+- [X] Backend compactado sem `node_modules`.
+- [X] Frontend compactado sem `node_modules`.
