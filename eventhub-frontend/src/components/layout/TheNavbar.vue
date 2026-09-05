@@ -9,6 +9,7 @@
       <router-link to="/favorites">Favoritos</router-link>
       <router-link to="/notifications">Notificações</router-link>
       <router-link to="/profile">Perfil</router-link>
+      <router-link to="/register">Criar Conta</router-link>
     </div>
   </nav>
 </template>
