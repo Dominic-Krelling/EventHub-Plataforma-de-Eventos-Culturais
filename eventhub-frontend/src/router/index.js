@@ -34,8 +34,9 @@ const routes = [
     {
     path: '/notifications',
     name: 'notifications',
-    component: () => import('../views/NotificationsView.vue'),
-    meta: { requiresAuth: true }
+    component: () =>
+        import('../views/NotificationsView.vue'),
+        meta: { requiresAuth: true }
     },
     {
     path: '/favorites',
@@ -119,6 +120,23 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes
+})
+
+router.beforeEach((to) => {
+    if (to.meta.requiresAuth) {
+        const token =
+            localStorage.getItem('eventhub_token')
+        if (!token) {
+            return {
+                name: 'login',
+                query: {
+                    redirect: to.fullPath
+                }
+            }
+        }
+    }
+
+    return true
 })
 
 export default router   

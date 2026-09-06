@@ -1,0 +1,43 @@
+:root {
+    --eventhub-brand: #6c5ce7;
+    --eventhub-brand-dark: #5848c2;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f6fa;
+}
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 430px;
+    background: white;
+    border-radius: 16px;
+    padding: 35px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.eventhub-brand {
+    color: var(--eventhub-brand);
+}
+
+.btn-eventhub {
+    background-color: var(--eventhub-brand);
+    border-color: var(--eventhub-brand);
+    color: white;
+}
+
+.btn-eventhub:hover {
+    background-color: var(--eventhub-brand-dark);
+    border-color: var(--eventhub-brand-dark);
+    color: white;
+}
