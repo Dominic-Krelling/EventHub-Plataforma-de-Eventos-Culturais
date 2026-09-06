@@ -1,62 +1,121 @@
-const userService = require('./userService');
+const userService =
+    require('./userService');
 
-const { success } = require('../../middlewares/apiResponse');
+const {
+    success
+} = require(
+    '../../middlewares/apiResponse'
+);
 
-exports.register = async (req, res) => {
-    const {
-        username, email, password, fullName} = req.body;
+exports.register =
+    async (req, res) => {
+        const {
+            username,
+            email,
+            password,
+            fullName
+        } = req.body;
 
-    const newUser =
-        await userService.registerUser(
-            username, email, password, fullName
+        const newUser =
+            await userService
+                .registerUser(
+                    username,
+                    email,
+                    password,
+                    fullName
+                );
+
+        return success(
+            res,
+            newUser,
+            'Conta criada com sucesso! Faça login para continuar.',
+            201
         );
-    return success(
-        res, newUser, 'Conta criada com sucesso! Faça login para continuar.', 201
-    );
-};
+    };
 
-exports.login = async (req, res) => {
-    const { email,password } = req.body;
-
-    const result =
-        await userService.loginUser(
+exports.login =
+    async (req, res) => {
+        const {
             email,
             password
+        } = req.body;
+
+        const result =
+            await userService
+                .loginUser(
+                    email,
+                    password
+                );
+
+        return success(
+            res,
+            result,
+            'Login realizado com sucesso.'
         );
+    };
 
-    return success(
-        res,
-        result,
-        'Login realizado com sucesso.'
-    );
-};
-
-exports.logout = async (req, res) => {
-    return success(
-        res,
-        null,
-        'Logout realizado com sucesso.'
-    );
-};
-
-exports.getPublicProfile = async (req, res) => {
-    const user =
-        await userService.getPublicProfile(
-            req.params.username
+exports.logout =
+    async (req, res) => {
+        return success(
+            res,
+            null,
+            'Logout realizado com sucesso.'
         );
+    };
 
-    return success(res, user);
-};
+exports.getPublicProfile =
+    async (req, res) => {
+        const user =
+            await userService
+                .getPublicProfile(
+                    req.params.username
+                );
 
-exports.getMyProfile = async (req, res) => {
-    const user =
-        await userService.getUserProfile(
-            req.user.id
+        return success(
+            res,
+            user
         );
+    };
 
-    return success(
-        res,
-        user,
-        'Perfil autenticado encontrado.'
-    );
-};
+exports.getMyProfile =
+    async (req, res) => {
+        const user =
+            await userService
+                .getUserProfile(
+                    req.user.id
+                );
+
+        return success(
+            res,
+            user,
+            'Perfil autenticado encontrado.'
+        );
+    };
+
+exports.updateProfile =
+    async (req, res) => {
+        const {
+            fullName,
+            bio
+        } = req.body;
+
+        const newProfilePicture =
+            req.file
+                ? req.file.filename
+                : null;
+
+        const updatedUser =
+            await userService
+                .updateUserProfile(
+                    req.user.id,
+                    fullName,
+                    bio,
+                    newProfilePicture
+                );
+
+        return success(
+            res,
+            updatedUser,
+            'Perfil atualizado com sucesso.'
+        );
+    };

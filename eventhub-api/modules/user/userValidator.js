@@ -14,12 +14,16 @@ const validate = (req, res, next) => {
         return next();
     }
 
-    const firstError = errors.array()[0].msg;
+    const firstError =
+        errors.array()[0].msg;
 
-    const error = new Error(firstError);
+    const error =
+        new Error(firstError);
 
     error.status = 400;
-    error.errors = errors.array();
+
+    error.errors =
+        errors.array();
 
     throw error;
 };
@@ -88,7 +92,37 @@ const loginValidator = [
     validate
 ];
 
+const profileUpdateValidator = [
+    body('fullName')
+        .notEmpty()
+        .withMessage(
+            'O nome completo é obrigatório.'
+        )
+        .isLength({
+            max: VALIDATION.FULL_NAME_MAX
+        })
+        .withMessage(
+            `O nome completo deve ter no máximo ${VALIDATION.FULL_NAME_MAX} caracteres.`
+        )
+        .trim(),
+
+    body('bio')
+        .optional({
+            nullable: true
+        })
+        .isLength({
+            max: VALIDATION.BIO_MAX
+        })
+        .withMessage(
+            `A bio deve ter no máximo ${VALIDATION.BIO_MAX} caracteres.`
+        )
+        .trim(),
+
+    validate
+];
+
 module.exports = {
     registerValidator,
-    loginValidator
+    loginValidator,
+    profileUpdateValidator
 };
