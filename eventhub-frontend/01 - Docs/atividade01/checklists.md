@@ -1,5 +1,3 @@
-# Checklist — Atividade Aula 02 — EventHub
-
 ## Parte A — Backend
 
 ### Etapa 1 — Criando o módulo search

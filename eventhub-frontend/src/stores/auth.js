@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { login as loginRequest } from '../services/authService'
+import { login as loginRequest } from '../../src/services/authServices'
 
 const TOKEN_KEY = 'eventhub_token'
 const USER_KEY = 'eventhub_user'
