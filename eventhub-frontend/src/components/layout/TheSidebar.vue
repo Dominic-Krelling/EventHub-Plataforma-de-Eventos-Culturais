@@ -2,18 +2,32 @@
   <aside class="sidebar">
     <h3>EventHub</h3>
 
-    <router-link to="/feed"> Eventos</router-link>
-    <router-link to="/search"> Buscar</router-link>
-    <router-link to="/favorites"> Favoritos</router-link>
-    <router-link to="/notifications"> Notificações</router-link>
-    <router-link to="/profile"> Meu perfil</router-link>
+    <router-link to="/feed">
+      Eventos
+    </router-link>
+
+    <router-link to="/search">
+      Buscar
+    </router-link>
+
+    <router-link to="/favorites">
+      Favoritos
+    </router-link>
+
+    <router-link to="/notifications">
+      Notificações
+    </router-link>
+
+    <router-link to="/profile">
+      Meu perfil
+    </router-link>
   </aside>
 </template>
 
 <style scoped>
 .sidebar {
   width: 220px;
-  min-height: 100vh;
+  flex-shrink: 0;
   padding: 25px 15px;
   background: #241b35;
   color: white;
@@ -31,7 +45,8 @@
   border-radius: 6px;
 }
 
-.sidebar a:hover {
+.sidebar a:hover,
+.sidebar a.router-link-active {
   background: #6c4ab6;
 }
 </style>

@@ -140,3 +140,23 @@ async function handleSubmit() {
         </form>
     </div>
 </template>
+<style scoped>
+.registro-antigo {
+  display: block;
+  width: 100%;
+  max-width: 450px;
+  margin: 80px auto;
+}
+
+.registro-antigo h1 {
+  margin-bottom: 20px;
+}
+
+.registro-antigo form {
+  display: block;
+}
+
+.registro-antigo form > div {
+  margin-bottom: 10px;
+}
+</style>

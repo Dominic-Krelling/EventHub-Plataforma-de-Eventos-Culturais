@@ -2,11 +2,8 @@
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 
-const router =
-  useRouter()
-
-const authStore =
-  useAuthStore()
+const router = useRouter()
+const authStore = useAuthStore()
 
 function handleLogout() {
   authStore.logout()
@@ -19,9 +16,7 @@ function handleLogout() {
 
 <template>
   <nav class="navbar">
-    <h2>
-      EventHub
-    </h2>
+    <h2>EventHub</h2>
 
     <div class="links">
       <router-link to="/">
@@ -36,26 +31,16 @@ function handleLogout() {
         Buscar
       </router-link>
 
-      <template
-        v-if="
-          authStore.isAuthenticated
-        "
-      >
-        <router-link
-          to="/favorites"
-        >
+      <template v-if="authStore.isAuthenticated">
+        <router-link to="/favorites">
           Favoritos
         </router-link>
 
-        <router-link
-          to="/notifications"
-        >
+        <router-link to="/notifications">
           Notificações
         </router-link>
 
-        <router-link
-          to="/profile"
-        >
+        <router-link to="/profile">
           Meu Perfil
         </router-link>
 
@@ -69,15 +54,11 @@ function handleLogout() {
       </template>
 
       <template v-else>
-        <router-link
-          to="/login"
-        >
+        <router-link to="/login">
           Entrar
         </router-link>
 
-        <router-link
-          to="/register"
-        >
+        <router-link to="/register">
           Criar Conta
         </router-link>
       </template>
@@ -89,74 +70,43 @@ function handleLogout() {
 .navbar {
   display: flex;
   align-items: center;
-  justify-content:
-    space-between;
-
-  padding:
-    15px 30px;
-
-  background:
-    #6c4ab6;
-
-  color:
-    white;
+  justify-content: space-between;
+  padding: 15px 30px;
+  background: #6c4ab6;
+  color: white;
 }
 
 .navbar h2 {
-  margin:
-    0;
+  margin: 0;
 }
 
 .links {
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  gap:
-    20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .links a {
-  color:
-    white;
-
-  text-decoration:
-    none;
+  color: white;
+  text-decoration: none;
 }
 
 .links a:hover,
 .links a.router-link-active {
-  color:
-    #ffd966;
+  color: #ffd966;
 }
 
 .logout-button {
-  border:
-    1px solid white;
-
-  background:
-    transparent;
-
-  color:
-    white;
-
-  padding:
-    7px 14px;
-
-  border-radius:
-    6px;
-
-  cursor:
-    pointer;
+  border: 1px solid white;
+  background: transparent;
+  color: white;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .logout-button:hover {
-  background:
-    white;
-
-  color:
-    #6c4ab6;
+  background: white;
+  color: #6c4ab6;
 }
-</style>
+</style>  

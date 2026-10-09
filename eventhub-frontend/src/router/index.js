@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuth } from '../composables/useAuth'
 
 const routes = [
     { 
@@ -123,20 +124,20 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-    if (to.meta.requiresAuth) {
-        const token =
-            localStorage.getItem('eventhub_token')
-        if (!token) {
-            return {
-                name: 'login',
-                query: {
-                    redirect: to.fullPath
-                }
-            }
-        }
-    }
+  if (to.meta.requiresAuth) {
+    const token = localStorage.getItem('eventhub_token')
 
-    return true
+    if (!token) {
+      return {
+        name: 'login',
+        query: {
+          redirect: to.fullPath
+        }
+      }
+    }
+  }
+
+  return true
 })
 
 export default router   

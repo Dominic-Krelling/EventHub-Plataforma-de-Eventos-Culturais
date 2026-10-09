@@ -28,10 +28,6 @@ body,
   min-height: 100%;
 }
 
-body {
-  margin: 0;
-}
-
 .app {
   min-height: 100vh;
   display: flex;

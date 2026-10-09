@@ -1,121 +1,50 @@
-import {
-    defineStore
-} from 'pinia'
+import { defineStore } from 'pinia'
+import { login as loginRequest } from '../services/authServices'
 
-import {
-    login as loginRequest
-} from '../services/authServices'
+const TOKEN_KEY = 'eventhub_token'
+const USER_KEY = 'eventhub_user'
 
-const TOKEN_KEY =
-    'eventhub_token'
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    token: localStorage.getItem(TOKEN_KEY) || null,
+    user: JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+  }),
 
-const USER_KEY =
-    'eventhub_user'
+  getters: {
+    isAuthenticated: (state) => !!state.token
+  },
 
-export const useAuthStore =
-    defineStore(
-        'auth',
+  actions: {
+    async login(credentials) {
+      const response = await loginRequest(credentials)
 
-        {
-            state: () => ({
-                token:
-                    localStorage.getItem(
-                        TOKEN_KEY
-                    ) ||
-                    null,
+      this.token = response.data.token
+      this.user = response.data.user
 
-                user:
-                    JSON.parse(
-                        localStorage.getItem(
-                            USER_KEY
-                        ) ||
-                        'null'
-                    )
-            }),
+      localStorage.setItem(TOKEN_KEY, this.token)
+      localStorage.setItem(USER_KEY, JSON.stringify(this.user))
 
-            getters: {
-                isAuthenticated:
-                    (state) => {
-                        return !!state.token
-                    }
-            },
+      return response
+    },
 
-            actions: {
-                async login(
-                    credentials
-                ) {
-                    const response =
-                        await loginRequest(
-                            credentials
-                        )
+    setUser(user) {
+      this.user = user
+      localStorage.setItem(USER_KEY, JSON.stringify(user))
+    },
 
-                    this.token =
-                        response.data.token
+    logout() {
+      this.token = null
+      this.user = null
 
-                    this.user =
-                        response.data.user
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.removeItem(USER_KEY)
+    },
 
-                    localStorage.setItem(
-                        TOKEN_KEY,
-                        this.token
-                    )
+    restoreSession() {
+      this.token = localStorage.getItem(TOKEN_KEY)
 
-                    localStorage.setItem(
-                        USER_KEY,
-                        JSON.stringify(
-                            this.user
-                        )
-                    )
-
-                    return response
-                },
-
-                setUser(user) {
-                    this.user =
-                        user
-
-                    localStorage.setItem(
-                        USER_KEY,
-                        JSON.stringify(
-                            user
-                        )
-                    )
-                },
-
-                logout() {
-                    this.token =
-                        null
-
-                    this.user =
-                        null
-
-                    localStorage.removeItem(
-                        TOKEN_KEY
-                    )
-
-                    localStorage.removeItem(
-                        USER_KEY
-                    )
-                },
-
-                restoreSession() {
-                    this.token =
-                        localStorage.getItem(
-                            TOKEN_KEY
-                        )
-
-                    const storedUser =
-                        localStorage.getItem(
-                            USER_KEY
-                        )
-
-                    this.user =
-                        storedUser
-                            ? JSON.parse(
-                                  storedUser
-                              )
-                            : null
-                }
-            }
-        }
-    )
+      const storedUser = localStorage.getItem(USER_KEY)
+      this.user = storedUser ? JSON.parse(storedUser) : null
+    }
+  }
+})
