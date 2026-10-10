@@ -1,13 +1,14 @@
+
 const express = require('express')
+const router = express.Router()
 
 const eventController = require('./eventController')
 const eventValidator = require('./eventValidator')
 const eventUpload = require('../../middlewares/eventMulter')
-
 const asyncHandler = require('../../middlewares/asyncHandler')
-const { isAuthenticated } = require('../../middlewares/auth')
 
-const router = express.Router()
+const { isAuthenticated } = require('../../middlewares/auth')
+const { optionalAuth } = require('../../middlewares/optionalAuth')
 
 router.post(
   '/',
@@ -24,6 +25,7 @@ router.get(
 
 router.get(
   '/:id',
+  optionalAuth,
   asyncHandler(eventController.findById)
 )
 

@@ -1,12 +1,21 @@
 const fs = require('fs/promises')
 const path = require('path')
+const { Op } = require('sequelize')
 
 const Event = require('./eventModel')
 const User = require('../user/userModel')
+const sequelize = require('../../config/database')
 
-async function createEvent(data) {
-  return Event.sequelize.transaction(async (transaction) => {
-    const user = await User.findByPk(data.userId, {
+const publicUserAttributes = [
+  'id',
+  'username',
+  'fullName',
+  'profilePicture'
+]
+
+async function createEvent({ title, description, image, userId }) {
+  return sequelize.transaction(async (transaction) => {
+    const user = await User.findByPk(userId, {
       transaction,
       lock: transaction.LOCK.UPDATE
     })
@@ -18,10 +27,10 @@ async function createEvent(data) {
     }
 
     const event = await Event.create({
-      title: data.title,
-      description: data.description,
-      image: data.image,
-      userId: data.userId
+      title,
+      description,
+      image,
+      userId
     }, { transaction })
 
     await user.increment('eventsCount', {
@@ -33,37 +42,12 @@ async function createEvent(data) {
   })
 }
 
-async function getAllEvents() {
-  return Event.findAll({
-    include: [{
-      model: User,
-      as: 'creator',
-      attributes: ['id', 'username', 'fullName']
-    }],
-    order: [['createdAt', 'DESC']]
-  })
-}
-
-async function getEventById(id) {
-  return Event.findByPk(id, {
-    include: [{
-      model: User,
-      as: 'creator',
-      attributes: ['id', 'username', 'fullName']
-    }]
-  })
-}
-
-async function deleteUploadedImage(filename) {
+async function deleteEventImage(filename) {
   if (!filename) return
 
   const filePath = path.join(
     __dirname,
-    '..',
-    '..',
-    'public',
-    'uploads',
-    'events',
+    '../../public/uploads/events',
     path.basename(filename)
   )
 
@@ -76,9 +60,103 @@ async function deleteUploadedImage(filename) {
   }
 }
 
+async function getEventDetails(id, currentUserId = null) {
+  const event = await Event.findByPk(id, {
+    include: [{
+      model: User,
+      as: 'creator',
+      attributes: publicUserAttributes
+    }]
+  })
+
+  if (!event) return null
+
+  await event.increment('viewsCount', { by: 1 })
+  await event.reload({
+    include: [{
+      model: User,
+      as: 'creator',
+      attributes: publicUserAttributes
+    }]
+  })
+
+  const data = event.toJSON()
+
+  return {
+    ...data,
+    isOwner:
+      currentUserId != null &&
+      Number(data.userId) === Number(currentUserId)
+  }
+}
+
+async function getFeedEvents({ page = 1, limit = 10 } = {}) {
+  const offset = (page - 1) * limit
+
+  const { count, rows } = await Event.findAndCountAll({
+    attributes: [
+      'id',
+      'title',
+      'description',
+      'image',
+      'userId',
+      'viewsCount',
+      'createdAt'
+    ],
+    include: [{
+      model: User,
+      as: 'creator',
+      attributes: publicUserAttributes
+    }],
+    order: [
+      ['createdAt', 'DESC'],
+      ['id', 'DESC']
+    ],
+    limit,
+    offset
+  })
+
+  return {
+    items: rows,
+    pagination: {
+      page,
+      limit,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+      hasMore: offset + rows.length < count
+    }
+  }
+}
+
+// Mantém compatibilidade com a listagem da Aula 07.
+async function listEvents() {
+  return Event.findAll({
+    include: [{
+      model: User,
+      as: 'creator',
+      attributes: publicUserAttributes
+    }],
+    order: [['createdAt', 'DESC']]
+  })
+}
+
+async function findEventById(id) {
+  return Event.findByPk(id, {
+    include: [{
+      model: User,
+      as: 'creator',
+      attributes: publicUserAttributes
+    }]
+  })
+}
+
 module.exports = {
   createEvent,
-  getAllEvents,
-  getEventById,
-  deleteUploadedImage
+  deleteEventImage,
+  getEventDetails,
+  getFeedEvents,
+  listEvents,
+  findEventById,
+  list: listEvents,
+  findById: findEventById
 }

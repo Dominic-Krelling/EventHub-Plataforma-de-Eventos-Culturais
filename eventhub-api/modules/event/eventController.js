@@ -15,37 +15,61 @@ async function create(req, res, next) {
       data: event
     })
   } catch (error) {
-    await eventService.deleteUploadedImage(req.file?.filename)
+    if (req.file?.filename) {
+      await eventService.deleteEventImage(req.file.filename)
+    }
+
     next(error)
   }
 }
 
-async function list(req, res) {
-  const events = await eventService.getAllEvents()
+async function list(req, res, next) {
+  try {
+    const events = await eventService.listEvents()
 
-  return res.status(200).json({
-    success: true,
-    message: 'Eventos encontrados.',
-    data: events
-  })
+    return res.status(200).json({
+      success: true,
+      message: 'Eventos encontrados.',
+      data: events
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
-async function findById(req, res) {
-  const event = await eventService.getEventById(req.params.id)
+async function findById(req, res, next) {
+  try {
+    const id = Number(req.params.id)
 
-  if (!event) {
-    return res.status(404).json({
-      success: false,
-      message: 'Evento não encontrado.',
-      errors: []
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID do evento inválido.',
+        errors: []
+      })
+    }
+
+    const event = await eventService.getEventDetails(
+      id,
+      req.user?.id
+    )
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Evento não encontrado.',
+        errors: []
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Detalhes do evento encontrados.',
+      data: event
     })
+  } catch (error) {
+    next(error)
   }
-
-  return res.status(200).json({
-    success: true,
-    message: 'Evento encontrado.',
-    data: event
-  })
 }
 
 module.exports = {

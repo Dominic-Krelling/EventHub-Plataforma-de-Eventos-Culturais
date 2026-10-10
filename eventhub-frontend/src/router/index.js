@@ -20,7 +20,9 @@ const routes = [
     {
     path: '/feed',
     name: 'feed',
-    component: () => import('../views/FeedView.vue')
+    component: () => import('../views/FeedView.vue'),
+    meta: { requiresAuth: true }
+
     },
     {
     path: '/event/:id',
@@ -120,9 +122,7 @@ const routes = [
       path: '/events/create',
       name: 'event-create',
       component: () => import('../views/CreateEventView.vue'),
-      meta: {
-        requiresAuth: true
-      }
+      meta: { requiresAuth: true }
     },
     ]
 

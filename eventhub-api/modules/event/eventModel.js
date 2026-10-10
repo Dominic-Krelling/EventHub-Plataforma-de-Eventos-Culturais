@@ -30,6 +30,12 @@ const Event = sequelize.define('Event', {
       model: 'users',
       key: 'id'
     }
+  },
+
+  viewsCount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   tableName: 'events',

@@ -1,7 +1,38 @@
-const MEDIA_URL = import.meta.env.VITE_MEDIA_URL
+const API_BASE =
+  import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
-export function getProfilePictureUrl(filename) {
-  const image = filename || 'default-profile.png'
+const SERVER_BASE = API_BASE.replace(/\/api\/?$/, '')
 
-  return `${MEDIA_URL}/uploads/profiles/${image}`
+export function getEventImageUrl(image) {
+  if (!image) return ''
+
+  if (/^https?:\/\//i.test(image)) {
+    return image
+  }
+
+  const normalized = String(image).replace(/^\/+/, '')
+
+  if (normalized.startsWith('uploads/')) {
+    return `${SERVER_BASE}/${normalized}`
+  }
+
+  return `${SERVER_BASE}/uploads/events/${normalized}`
+}
+
+export function getProfileImageUrl(image) {
+  if (!image) {
+    image = 'default-profile.png'
+  }
+
+  if (/^https?:\/\//i.test(image)) {
+    return image
+  }
+
+  const normalized = String(image).replace(/^\/+/, '')
+
+  if (normalized.startsWith('uploads/')) {
+    return `${SERVER_BASE}/${normalized}`
+  }
+
+  return `${SERVER_BASE}/uploads/profiles/${normalized}`
 }
