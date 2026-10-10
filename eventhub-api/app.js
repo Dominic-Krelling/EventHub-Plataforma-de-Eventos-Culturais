@@ -1,143 +1,65 @@
-var express =
-    require('express');
 
-var logger =
-    require('morgan');
+const express = require('express')
+const logger = require('morgan')
+const cors = require('cors')
+const path = require('path')
 
-var cors =
-    require('cors');
+require('dotenv').config()
 
-var path =
-    require('path');
+const indexRouter = require('./routes/index')
+const searchRoutes = require('./modules/search/searchRoutes')
+const userRoutes = require('./modules/user/userRoutes')
+const eventRoutes = require('./modules/event/eventRoutes')
 
-require('dotenv')
-    .config();
+const errorHandler = require('./middlewares/errorHandler')
+const setupAssociations = require('./config/associations')
+const sequelize = require('./config/database')
 
-var indexRouter =
-    require(
-        './routes/index'
-    );
+const app = express()
 
-var searchRoutes =
-    require(
-        './modules/search/searchRoutes'
-    );
+// Middlewares globais
+app.use(logger('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
 
-var userRoutes =
-    require(
-        './modules/user/userRoutes'
-    );
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true
+}))
 
-var errorHandler =
-    require(
-        './middlewares/errorHandler'
-    );
-
-var app =
-    express();
-
+// Arquivos públicos: fotos de perfil e imagens dos eventos
 app.use(
-    logger('dev')
-);
+  '/uploads',
+  express.static(path.join(__dirname, 'public', 'uploads'))
+)
 
-app.use(
-    express.json()
-);
+// Rotas
+app.use('/api', indexRouter)
+app.use('/api/events', eventRoutes)
+app.use('/api', searchRoutes)
+app.use('/api', userRoutes)
 
-app.use(
-    express.urlencoded({
-        extended: false
-    })
-);
+// Resposta 404
+app.use((req, res) => {
+  return res.status(404).json({
+    success: false,
+    message: 'Rota não encontrada.',
+    errors: []
+  })
+})
 
-app.use(
-    cors({
-        origin:
-            process.env.CORS_ORIGIN ||
-            'http://localhost:5173',
+// Tratamento de erros
+app.use(errorHandler)
 
-        credentials: true
-    })
-);
+// Associações antes da sincronização
+setupAssociations()
 
-/*
- * Arquivos públicos.
- *
- * Exemplo:
- * /uploads/profiles/default-profile.png
- */
-app.use(
-    '/uploads',
+sequelize.sync()
+  .then(() => {
+    console.log('Banco de dados sincronizado!')
+  })
+  .catch((err) => {
+    console.error('Erro ao sincronizar banco:', err)
+  })
 
-    express.static(
-        path.join(
-            __dirname,
-            'public/uploads'
-        )
-    )
-);
-
-/*
- * Rotas da API
- */
-app.use(
-    '/api',
-    indexRouter
-);
-
-app.use(
-    '/api',
-    searchRoutes
-);
-
-app.use(
-    '/api',
-    userRoutes
-);
-
-/*
- * 404
- */
-app.use(
-    (req, res) => {
-        res.status(404)
-            .json({
-                success: false,
-
-                message:
-                    'Rota não encontrada.',
-
-                errors: []
-            });
-    }
-);
-
-/*
- * Error handler
- */
-app.use(
-    errorHandler
-);
-
-const sequelize =
-    require(
-        './config/database'
-    );
-
-sequelize
-    .sync({
-        alter: true
-    })
-    .then(() => {
-        console.log(
-            'Banco de dados sincronizado!'
-        );
-    })
-    .catch((err) => {
-        console.error(
-            'Erro ao sincronizar banco:',
-            err
-        );
-    });
-
-module.exports = app;
+module.exports = app

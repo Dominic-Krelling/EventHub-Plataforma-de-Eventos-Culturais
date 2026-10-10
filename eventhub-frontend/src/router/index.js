@@ -114,8 +114,16 @@ const routes = [
     path: '/pathmatch(.*)*',
     name: 'not-found',
     component: () => import('../views/NotFoundView.vue') 
-    }
-
+    },
+    
+    {
+      path: '/events/create',
+      name: 'event-create',
+      component: () => import('../views/CreateEventView.vue'),
+      meta: {
+        requiresAuth: true
+      }
+    },
     ]
 
 const router = createRouter({

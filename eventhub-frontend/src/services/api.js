@@ -1,20 +1,25 @@
+
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    headers: {
-        'Content-Type': 'application/json'
-    }
+    baseURL: import.meta.env.VITE_API_URL
 })
 
+// Interceptador de requisições
 api.interceptors.request.use(
     (config) => {
-        const token =
-            localStorage.getItem('eventhub_token')
+        const token = localStorage.getItem('eventhub_token')
 
         if (token) {
-            config.headers.Authorization =
-                `Bearer ${token}`
+            config.headers.Authorization = `Bearer ${token}`
+        }
+
+        // Uploads devem ser enviados como FormData,
+        // sem converter o arquivo em JSON.
+        if (config.data instanceof FormData) {
+            config.headers.setContentType(undefined)
+        } else {
+            config.headers.setContentType('application/json')
         }
 
         return config
@@ -25,6 +30,7 @@ api.interceptors.request.use(
     }
 )
 
+// Interceptador de respostas
 api.interceptors.response.use(
     (response) => {
         return response.data
@@ -33,18 +39,10 @@ api.interceptors.response.use(
     (error) => {
         if (error.response) {
             if (error.response.status === 401) {
-                localStorage.removeItem(
-                    'eventhub_token'
-                )
+                localStorage.removeItem('eventhub_token')
+                localStorage.removeItem('eventhub_user')
 
-                localStorage.removeItem(
-                    'eventhub_user'
-                )
-
-                if (
-                    window.location.pathname !==
-                    '/login'
-                ) {
+                if (window.location.pathname !== '/login') {
                     const currentPath =
                         window.location.pathname +
                         window.location.search
@@ -54,19 +52,15 @@ api.interceptors.response.use(
                 }
             }
 
-            const apiError =
-                error.response.data
+            const apiError = error.response.data || {}
 
             return Promise.reject({
                 message:
                     apiError.message ||
                     'Ocorreu um erro na requisição.',
 
-                errors:
-                    apiError.errors || [],
-
-                status:
-                    error.response.status
+                errors: apiError.errors || [],
+                status: error.response.status
             })
         }
 
