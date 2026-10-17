@@ -3,6 +3,10 @@ const API_BASE =
 
 const SERVER_BASE = API_BASE.replace(/\/api\/?$/, '')
 
+function normalizeImagePath(image) {
+  return String(image).replace(/^\/+/, '')
+}
+
 export function getEventImageUrl(image) {
   if (!image) return ''
 
@@ -10,7 +14,7 @@ export function getEventImageUrl(image) {
     return image
   }
 
-  const normalized = String(image).replace(/^\/+/, '')
+  const normalized = normalizeImagePath(image)
 
   if (normalized.startsWith('uploads/')) {
     return `${SERVER_BASE}/${normalized}`
@@ -28,7 +32,7 @@ export function getProfileImageUrl(image) {
     return image
   }
 
-  const normalized = String(image).replace(/^\/+/, '')
+  const normalized = normalizeImagePath(image)
 
   if (normalized.startsWith('uploads/')) {
     return `${SERVER_BASE}/${normalized}`

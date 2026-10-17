@@ -9,6 +9,8 @@ const fs =
 const path =
     require('path');
 
+const Event = require('../event/eventModel')
+
 const {
     generateToken
 } = require('../../config/jwt');
@@ -162,39 +164,44 @@ async function loginUser(
     };
 }
 
-async function getPublicProfile(
-    username
-) {
-    const user =
-        await User.findOne({
-            where: {
-                username
-            },
+async function getPublicProfile(username) {
+  const user = await User.findOne({
+    where: { username },
+    attributes: [
+      'id',
+      'username',
+      'fullName',
+      'bio',
+      'profilePicture',
+      'followersCount',
+      'followingCount',
+      'eventsCount'
+    ]
+  })
 
-            attributes: [
-                'id',
-                'username',
-                'fullName',
-                'bio',
-                'profilePicture',
-                'followersCount',
-                'followingCount',
-                'eventsCount'
-            ]
-        });
+  if (!user) {
+    const error = new Error('Usuário não encontrado.')
+    error.status = 404
+    throw error
+  }
 
-    if (!user) {
-        const error =
-            new Error(
-                'Usuário não encontrado.'
-            );
+  const events = await Event.findAll({
+    where: { userId: user.id },
+    attributes: [
+      'id',
+      'title',
+      'description',
+      'image',
+      'viewsCount',
+      'createdAt'
+    ],
+    order: [['createdAt', 'DESC']]
+  })
 
-        error.status = 404;
-
-        throw error;
-    }
-
-    return user;
+  return {
+    ...user.toJSON(),
+    events
+  }
 }
 
 async function getUserProfile(

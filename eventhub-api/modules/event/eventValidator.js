@@ -26,25 +26,30 @@ const eventValidator = [
   async (req, res, next) => {
     const result = validationResult(req)
 
-    if (result.isEmpty() && req.file) {
-      return next()
-    }
-
-    if (req.file) {
-      try {
-        await fs.unlink(req.file.path)
-      } catch (error) {
-        console.error('Erro ao limpar arquivo inválido:', error)
+    if (!result.isEmpty() || !req.file) {
+      if (req.file?.path) {
+        try {
+          await fs.unlink(req.file.path)
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            console.error(
+              'Erro ao limpar arquivo inválido:',
+              error
+            )
+          }
+        }
       }
+
+      return res.status(400).json({
+        success: false,
+        message: !req.file
+          ? 'A imagem do evento é obrigatória.'
+          : 'Dados inválidos.',
+        errors: result.array()
+      })
     }
 
-    return res.status(400).json({
-      success: false,
-      message: !req.file
-        ? 'A imagem do evento é obrigatória.'
-        : 'Dados inválidos.',
-      errors: result.array()
-    })
+    return next()
   }
 ]
 

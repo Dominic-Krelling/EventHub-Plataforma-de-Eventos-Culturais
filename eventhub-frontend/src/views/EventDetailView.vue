@@ -1,4 +1,3 @@
-
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -22,16 +21,16 @@ async function loadEvent() {
 
   try {
     const response = await getEventById(route.params.id)
+    const body = response.data
+    const eventData = body?.data ?? body
 
-    event.value = response.data
-    isOwner.value = Boolean(response.data?.isOwner)
+    event.value = eventData
+    isOwner.value = Boolean(eventData?.isOwner)
   } catch (error) {
-    if (error.status === 404) {
-      errorMessage.value = 'Evento não encontrado.'
-    } else {
-      errorMessage.value =
-        error.message || 'Erro ao carregar evento.'
-    }
+    errorMessage.value =
+      error.response?.data?.message ||
+      error.message ||
+      'Não foi possível carregar o evento.'
   } finally {
     loading.value = false
   }

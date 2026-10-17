@@ -5,9 +5,9 @@ export function getMyProfile() {
 }
 
 export function updateProfile(formData) {
-  return api.put('/profile/me', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
+  return api.put('/profile/me', formData)
+}
+
+export function getPublicProfile(username) {
+  return api.get(`/profile/${username}`)
 }

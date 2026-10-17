@@ -19,3 +19,13 @@ export function getFeed(page = 1, limit = 6) {
     params: { page, limit }
   })
 }
+
+export function updateEvent(id, formData, onProgress) {
+  return api.put(`/events/${id}`, formData, {
+    onUploadProgress: onProgress
+  })
+}
+
+export function deleteEvent(id) {
+  return api.delete(`/events/${id}`)
+}

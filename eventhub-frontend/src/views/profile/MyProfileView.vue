@@ -9,7 +9,7 @@ import {
 
 import api from '../../services/api'
 import { updateProfile } from '../../services/profileService'
-import { getProfilePictureUrl } from '../../utils/media'
+import { getProfileImageUrl } from '../../utils/media'
 import { useAuthStore } from '../../stores/auth'
 
 const authStore = useAuthStore()
@@ -34,7 +34,7 @@ const currentImage = computed(() => {
     return previewUrl.value
   }
 
-  return getProfilePictureUrl(
+  return getProfileImageUrl(
     profile.value?.profilePicture
   )
 })

@@ -1,6 +1,5 @@
 const fs = require('fs/promises')
 const path = require('path')
-const { Op } = require('sequelize')
 
 const Event = require('./eventModel')
 const User = require('../user/userModel')
@@ -72,6 +71,7 @@ async function getEventDetails(id, currentUserId = null) {
   if (!event) return null
 
   await event.increment('viewsCount', { by: 1 })
+
   await event.reload({
     include: [{
       model: User,
@@ -90,7 +90,7 @@ async function getEventDetails(id, currentUserId = null) {
   }
 }
 
-async function getFeedEvents({ page = 1, limit = 10 } = {}) {
+async function getFeedEvents({ page = 1, limit = 6 } = {}) {
   const offset = (page - 1) * limit
 
   const { count, rows } = await Event.findAndCountAll({
@@ -128,9 +128,20 @@ async function getFeedEvents({ page = 1, limit = 10 } = {}) {
   }
 }
 
-// Mantém compatibilidade com a listagem da Aula 07.
 async function listEvents() {
   return Event.findAll({
+    include: [{
+      model: User,
+      as: 'creator',
+      attributes: publicUserAttributes
+    }],
+    order: [['createdAt', 'DESC']]
+  })
+}
+
+async function listMyEvents(userId) {
+  return Event.findAll({
+    where: { userId },
     include: [{
       model: User,
       as: 'creator',
@@ -150,13 +161,94 @@ async function findEventById(id) {
   })
 }
 
+async function updateEvent(id, userId, data, imageFilename) {
+  const event = await Event.findByPk(id)
+
+  if (!event) {
+    const error = new Error('Evento não encontrado.')
+    error.status = 404
+    throw error
+  }
+
+  if (Number(event.userId) !== Number(userId)) {
+    const error = new Error('Você não tem permissão para editar este evento.')
+    error.status = 403
+    throw error
+  }
+
+  const oldImage = event.image
+
+  if (data.title !== undefined) {
+    event.title = data.title
+  }
+
+  if (data.description !== undefined) {
+    event.description = data.description
+  }
+
+  if (imageFilename) {
+    event.image = imageFilename
+  }
+
+  await event.save()
+
+  if (
+    imageFilename &&
+    oldImage &&
+    oldImage !== imageFilename
+  ) {
+    await deleteEventImage(oldImage)
+  }
+
+  return getEventDetails(event.id, userId)
+}
+
+async function removeEvent(id, userId) {
+  const event = await Event.findByPk(id)
+
+  if (!event) {
+    const error = new Error('Evento não encontrado.')
+    error.status = 404
+    throw error
+  }
+
+  if (Number(event.userId) !== Number(userId)) {
+    const error = new Error('Você não tem permissão para excluir este evento.')
+    error.status = 403
+    throw error
+  }
+
+  const image = event.image
+  const owner = await User.findByPk(userId)
+
+  await sequelize.transaction(async (transaction) => {
+    await event.destroy({ transaction })
+
+    if (owner && Number(owner.eventsCount) > 0) {
+      await owner.decrement('eventsCount', {
+        by: 1,
+        transaction
+      })
+    }
+  })
+
+  if (image) {
+    await deleteEventImage(image)
+  }
+
+  return { id: event.id }
+}
+
 module.exports = {
   createEvent,
   deleteEventImage,
   getEventDetails,
   getFeedEvents,
   listEvents,
+  listMyEvents,
   findEventById,
+  updateEvent,
+  removeEvent,
   list: listEvents,
   findById: findEventById
 }

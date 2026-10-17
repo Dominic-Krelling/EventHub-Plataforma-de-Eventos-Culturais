@@ -13,10 +13,15 @@ const searchRoutes = require('./modules/search/searchRoutes')
 const userRoutes = require('./modules/user/userRoutes')
 const eventRoutes = require('./modules/event/eventRoutes')
 const feedRoutes = require('./modules/event/feedRoutes')
+const eventController = require('./modules/event/eventController')
+const asyncHandler = require('./middlewares/asyncHandler')
+const { isAuthenticated } = require('./middlewares/auth')
 
 const errorHandler = require('./middlewares/errorHandler')
 
 const app = express()
+
+//app.set('etag',false)
 
 app.use(logger('dev'))
 
@@ -27,6 +32,7 @@ app.use(cors({
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+app.get('/api/my-events', isAuthenticated, asyncHandler(eventController.listMine))
 
 app.use(
   '/uploads',
@@ -36,6 +42,17 @@ app.use(
 app.use('/api', indexRouter)
 app.use('/api/events', eventRoutes)
 app.use('/api/feed', feedRoutes)
+app.use('/api', searchRoutes)
+app.use('/api', userRoutes)
+app.use('/api/events', eventRoutes)
+app.use('/api/feed', feedRoutes)
+
+app.get(
+  '/api/my-events',
+  isAuthenticated,
+  asyncHandler(eventController.listMine)
+)
+
 app.use('/api', searchRoutes)
 app.use('/api', userRoutes)
 
