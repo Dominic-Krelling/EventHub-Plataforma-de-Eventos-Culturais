@@ -6,6 +6,7 @@ module.exports = {
     FULL_NAME_MAX: 100,
     BIO_MAX: 255,
     DESCRIPTION_MAX: 2000,
-    TITLE_MAX: 150
+    TITLE_MAX: 150,
+    COMMENT_MAX: 500
   }
 }

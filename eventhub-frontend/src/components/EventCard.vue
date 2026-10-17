@@ -82,6 +82,10 @@ const formattedDate = computed(() => {
       </span>
 
       <span>{{ formattedDate }}</span>
+      <div class="card-counters">
+        <span><i class="bi bi-heart-fill"></i> {{ event.likesCount ?? 0 }}</span>
+        <span><i class="bi bi-chat"></i> {{ event.commentsCount ?? 0 }}</span>
+      </div>
     </div>
 
     <div class="event-actions">
@@ -179,6 +183,13 @@ h3 {
   flex-wrap: wrap;
   gap: 8px;
   padding: 0 18px 18px;
+}
+.card-counters {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  color: #666;
+  font-size: 0.9rem;
 }
 </style>
 ```

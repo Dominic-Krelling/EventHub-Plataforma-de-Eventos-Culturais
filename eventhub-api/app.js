@@ -15,6 +15,8 @@ const eventRoutes = require('./modules/event/eventRoutes')
 const feedRoutes = require('./modules/event/feedRoutes')
 const eventController = require('./modules/event/eventController')
 const asyncHandler = require('./middlewares/asyncHandler')
+const likeRoutes = require('./modules/like/likeRoutes')
+const commentRoutes = require('./modules/comment/commentRoutes')
 const { isAuthenticated } = require('./middlewares/auth')
 
 const errorHandler = require('./middlewares/errorHandler')
@@ -40,12 +42,15 @@ app.use(
 )
 
 app.use('/api', indexRouter)
+
 app.use('/api/events', eventRoutes)
 app.use('/api/feed', feedRoutes)
 app.use('/api', searchRoutes)
 app.use('/api', userRoutes)
 app.use('/api/events', eventRoutes)
 app.use('/api/feed', feedRoutes)
+app.use('/api', likeRoutes)
+app.use('/api', commentRoutes)
 
 app.get(
   '/api/my-events',
@@ -53,8 +58,6 @@ app.get(
   asyncHandler(eventController.listMine)
 )
 
-app.use('/api', searchRoutes)
-app.use('/api', userRoutes)
 
 app.use((req, res) => {
   res.status(404).json({

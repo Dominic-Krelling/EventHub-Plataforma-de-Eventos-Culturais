@@ -68,6 +68,11 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/liked-events',
+    component: () => import('../views/events/LikedEventsView.vue'),
+    meta: { requiresAuth: true }
+  }, 
+  {
     path: '/events/create',
     name: 'event-create',
     component: () => import('../views/CreateEventView.vue'),

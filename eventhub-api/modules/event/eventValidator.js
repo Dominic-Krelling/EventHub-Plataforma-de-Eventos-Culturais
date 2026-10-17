@@ -14,8 +14,8 @@ const eventValidator = [
     ),
 
   body('description')
-    .trim()
     .notEmpty()
+    .trim()
     .withMessage('A descrição é obrigatória.')
     .bail()
     .isLength({ max: VALIDATION.DESCRIPTION_MAX })

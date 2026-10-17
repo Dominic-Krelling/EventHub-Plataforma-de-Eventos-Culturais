@@ -36,6 +36,16 @@ const Event = sequelize.define('Event', {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 0
+  },
+  likesCount: {
+  type: DataTypes.INTEGER,
+  allowNull: false,
+  defaultValue: 0
+  },
+  commentsCount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   tableName: 'events',

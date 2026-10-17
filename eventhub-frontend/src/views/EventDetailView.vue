@@ -5,6 +5,11 @@ import { useRoute } from 'vue-router'
 import { getEventById } from '../services/eventServices'
 import { getEventImageUrl } from '../utils/media'
 
+import LikeButton from '../components/LikeButton.vue'
+import CommentSection from '../components/CommentSection.vue'
+
+const commentsCount = ref(0)
+
 const route = useRoute()
 
 const event = ref(null)
@@ -19,12 +24,14 @@ async function loadEvent() {
   event.value = null
   isOwner.value = false
 
+
   try {
     const response = await getEventById(route.params.id)
     const body = response.data
     const eventData = body?.data ?? body
 
     event.value = eventData
+    commentsCount.value = eventData.commentsCount ?? 0
     isOwner.value = Boolean(eventData?.isOwner)
   } catch (error) {
     errorMessage.value =
@@ -96,6 +103,20 @@ watch(
         <p class="description">
           {{ event.description }}
         </p>
+        <div class="interactions">
+          <LikeButton
+            :event-id="event.id"
+            :initial-liked="Boolean(event.isLiked)"
+            :initial-count="event.likesCount ?? 0"
+          />
+          <span class="comments-counter">
+            <i class="bi bi-chat"></i> {{ commentsCount }}
+          </span>
+        </div>
+        <CommentSection
+          :event-id="event.id"
+          @count-change="commentsCount = $event"
+        />
       </div>
     </article>
   </main>
@@ -133,6 +154,13 @@ watch(
 
 .detail-content {
   padding: 30px;
+}
+
+.interactions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 24px;
 }
 
 h1 {

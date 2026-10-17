@@ -3,6 +3,8 @@ const path = require('path')
 
 const Event = require('./eventModel')
 const User = require('../user/userModel')
+const Like = require('../like/likeModel')
+const Comment = require('../comment/commentModel')
 const sequelize = require('../../config/database')
 
 const publicUserAttributes = [
@@ -81,6 +83,15 @@ async function getEventDetails(id, currentUserId = null) {
   })
 
   const data = event.toJSON()
+  
+  let isLiked = false
+
+    if (currentUserId != null) {
+      const like = await Like.findOne({
+        where: { userId: currentUserId, eventId: data.id }
+      })
+      isLiked = Boolean(like)
+    }
 
   return {
     ...data,
@@ -100,6 +111,8 @@ async function getFeedEvents({ page = 1, limit = 6 } = {}) {
       'description',
       'image',
       'userId',
+      'likesCount',
+      'commentsCount',
       'viewsCount',
       'createdAt'
     ],
@@ -220,8 +233,10 @@ async function removeEvent(id, userId) {
 
   const image = event.image
   const owner = await User.findByPk(userId)
-
   await sequelize.transaction(async (transaction) => {
+    await Like.destroy({ where: { eventId: event.id }, transaction })
+    await Comment.destroy({ where: { eventId: event.id }, transaction })
+
     await event.destroy({ transaction })
 
     if (owner && Number(owner.eventsCount) > 0) {
