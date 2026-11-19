@@ -17,6 +17,7 @@ const eventController = require('./modules/event/eventController')
 const asyncHandler = require('./middlewares/asyncHandler')
 const likeRoutes = require('./modules/like/likeRoutes')
 const commentRoutes = require('./modules/comment/commentRoutes')
+const followRoutes = require('./modules/follow/followRoutes')
 const { isAuthenticated } = require('./middlewares/auth')
 
 const errorHandler = require('./middlewares/errorHandler')
@@ -51,6 +52,7 @@ app.use('/api/events', eventRoutes)
 app.use('/api/feed', feedRoutes)
 app.use('/api', likeRoutes)
 app.use('/api', commentRoutes)
+app.use('/api', followRoutes)
 
 app.get(
   '/api/my-events',

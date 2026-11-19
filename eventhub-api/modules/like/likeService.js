@@ -1,10 +1,3 @@
-
-import api from './api'
-
-export function getLikedEvents() {
-  return api.get('/liked-events')
-}
-
 const Like = require('./likeModel')
 const Event = require('../event/eventModel')
 const User = require('../user/userModel')

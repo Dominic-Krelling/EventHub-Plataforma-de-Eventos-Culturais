@@ -68,7 +68,8 @@ exports.getPublicProfile =
         const user =
             await userService
                 .getPublicProfile(
-                    req.params.username
+                    req.params.username,
+                    req.user?.id ?? null
                 );
 
         return success(

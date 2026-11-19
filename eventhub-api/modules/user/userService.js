@@ -11,6 +11,8 @@ const path =
 
 const Event = require('../event/eventModel')
 
+const Follow = require('../follow/followModel')
+
 const {
     generateToken
 } = require('../../config/jwt');
@@ -164,7 +166,7 @@ async function loginUser(
     };
 }
 
-async function getPublicProfile(username) {
+async function getPublicProfile(username, currentUserId = null) {
   const user = await User.findOne({
     where: { username },
     attributes: [
@@ -198,8 +200,21 @@ async function getPublicProfile(username) {
     order: [['createdAt', 'DESC']]
   })
 
+  const isOwner =
+    currentUserId != null && Number(currentUserId) === Number(user.id)
+
+  let isFollowing = false
+  if (currentUserId != null && !isOwner) {
+    const follow = await Follow.findOne({
+      where: { followerId: Number(currentUserId), followingId: user.id }
+    })
+    isFollowing = Boolean(follow)
+  }
+
   return {
     ...user.toJSON(),
+    isOwner,
+    isFollowing,
     events
   }
 }

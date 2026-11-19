@@ -1,3 +1,4 @@
+const { Op } = require('sequelize')
 const fs = require('fs/promises')
 const path = require('path')
 
@@ -5,6 +6,7 @@ const Event = require('./eventModel')
 const User = require('../user/userModel')
 const Like = require('../like/likeModel')
 const Comment = require('../comment/commentModel')
+const Follow = require('../follow/followModel')
 const sequelize = require('../../config/database')
 
 const publicUserAttributes = [
@@ -141,6 +143,29 @@ async function getFeedEvents({ page = 1, limit = 6 } = {}) {
   }
 }
 
+async function getFollowingEvents(userId, page = 1, limit = 12) {
+  const rows = await Follow.findAll({
+    where: { followerId: userId },
+    attributes: ['followingId']
+  })
+  const followedIds = rows.map((row) => Number(row.followingId))
+
+  // Quem não segue ninguém: devolve cedo, sem rodar a consulta (Op.in com [] é inútil).
+  if (followedIds.length === 0) return []
+
+  return Event.findAll({
+    attributes: [
+      'id', 'title', 'description', 'image', 'userId',
+      'likesCount', 'commentsCount', 'viewsCount', 'createdAt'
+    ],
+    where: { userId: { [Op.in]: followedIds } },
+    include: [{ model: User, as: 'creator', attributes: publicUserAttributes }],
+    order: [['createdAt', 'DESC'], ['id', 'DESC']],
+    limit,
+    offset: (page - 1) * limit
+  })
+}
+
 async function listEvents() {
   return Event.findAll({
     include: [{
@@ -259,6 +284,7 @@ module.exports = {
   deleteEventImage,
   getEventDetails,
   getFeedEvents,
+  getFollowingEvents,
   listEvents,
   listMyEvents,
   findEventById,

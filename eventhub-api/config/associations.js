@@ -2,6 +2,7 @@ const User = require('../modules/user/userModel')
 const Event = require('../modules/event/eventModel')
 const Like = require('../modules/like/likeModel')
 const Comment = require('../modules/comment/commentModel')
+const Follow = require('../modules/follow/followModel')
 
 let initialized = false
 
@@ -26,6 +27,10 @@ function setupAssociations() {
 
   Event.hasMany(Comment, { foreignKey: 'eventId' })
   Comment.belongsTo(Event, { foreignKey: 'eventId', as: 'event' })
+
+  Follow.belongsTo(User, { as: 'Follower', foreignKey: 'followerId' })
+  Follow.belongsTo(User, { as: 'Following', foreignKey: 'followingId' })  
+
   initialized = true
 }
 

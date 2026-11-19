@@ -28,6 +28,12 @@ const {
     '../../middlewares/auth'
 );
 
+const {
+    optionalAuth
+} = require(
+    '../../middlewares/optionalAuth'
+);
+
 const profileUpload =
     require(
         '../../middlewares/profileMulter'
@@ -67,7 +73,7 @@ router.get(
     isAuthenticated,
 
     asyncHandler(
-        userController.getMyProfile
+        userController.getPublicProfile
     )
 );
 
