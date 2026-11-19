@@ -61,6 +61,24 @@ const routes = [
     name: 'public-profile',
     component: () => import('../views/profile/PublicProfileView.vue')
   },
+    {
+    path: '/profile/:username/followers',
+    name: 'followers',
+    component: () => import('../views/profile/FollowListView.vue'),
+    props: { kind: 'followers' }
+  },
+  {
+    path: '/profile/:username/following',
+    name: 'following',
+    component: () => import('../views/profile/FollowListView.vue'),
+    props: { kind: 'following' }
+  },
+  {
+    path: '/following-events',
+    name: 'following-events',
+    component: () => import('../views/events/FollowingEventsView.vue'),
+    meta: { requiresAuth: true }
+  },
   {
     path: '/my-events',
     name: 'my-events',

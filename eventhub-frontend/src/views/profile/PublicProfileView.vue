@@ -19,16 +19,21 @@
           <p>{{ profile.bio || 'Este usuário ainda não adicionou uma biografia.' }}</p>
 
           <div class="stats">
-            <span>Seguidores: {{ profile.followersCount ?? 0 }}</span>
-            <span>Seguindo: {{ profile.followingCount ?? 0 }}</span>
+            <RouterLink :to="`/profile/${profile.username}/followers`">  Seguidores: {{ profile.followersCount ?? 0 }}
+            </RouterLink>
+            <RouterLink :to="`/profile/${profile.username}/following`"> Seguindo: {{ profile.followingCount ?? 0 }}
+            </RouterLink>
             <span>Eventos: {{ profile.eventsCount ?? profile.events?.length ?? 0 }}</span>
           </div>
           <RouterLink v-if="isOwner" to="/profile" class="btn btn-outline-secondary btn-sm">
             Editar Perfil
           </RouterLink>
-          <button v-else-if="isLogged" type="button" class="btn btn-primary btn-sm">
-            Seguir
-          </button>
+          <FollowButton
+            v-else
+            :user-id="profile.id"
+            v-model:following="profile.isFollowing"
+            v-model:followers-count="profile.followersCount"
+          />
         </div>
       </section>
 
@@ -67,8 +72,7 @@
 import { useRoute } from 'vue-router'
 import { getPublicProfile } from '../../services/profileService'
 import { computed, onMounted, ref, watch } from 'vue'
-import { useAuthStore } from '../../stores/auth'
-
+import FollowButton from '../../components/FollowButton.vue'
 
 import {
   getProfileImageUrl,
@@ -81,23 +85,21 @@ const profile = ref(null)
 const loading = ref(true)
 const errorMessage = ref('')
 
-const authStore = useAuthStore()
 const isOwner = computed(() => Boolean(profile.value?.isOwner))
-const isLogged = computed(() => Boolean(authStore.user))
 
 async function loadProfile() {
   loading.value = true
   errorMessage.value = ''
-  profile.value = response.data?.data ?? response.data
 
   try {
     const response = await getPublicProfile(route.params.username)
-    profile.value = response.data.data
+    profile.value = response.data?.data ?? response.data
   } catch (error) {
+    profile.value = null
     errorMessage.value =
-      error.response?.status === 404
+      error.status === 404
         ? 'Perfil não encontrado.'
-        : error.response?.data?.message ||
+        : error.message ||
           'Não foi possível carregar este perfil.'
   } finally {
     loading.value = false
@@ -149,6 +151,15 @@ watch(
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+}
+
+.stats a {
+  color: #6c4ab6;
+  text-decoration: none;
+}
+
+.stats a:hover {
+  text-decoration: underline;
 }
 
 .events-grid {

@@ -6,6 +6,10 @@
       Eventos
     </router-link>
 
+    <router-link to="/following-events">
+      Seguindo
+    </router-link>
+
     <router-link to="/search">
       Buscar
     </router-link>
