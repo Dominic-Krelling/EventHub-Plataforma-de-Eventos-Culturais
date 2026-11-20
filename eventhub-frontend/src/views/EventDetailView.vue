@@ -1,54 +1,36 @@
+
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { getEventById } from '../services/eventServices'
 import { getEventImageUrl } from '../utils/media'
+import { useAsyncData } from '../composables/useAsyncData'
 
 import LikeButton from '../components/LikeButton.vue'
 import CommentSection from '../components/CommentSection.vue'
 
-const commentsCount = ref(0)
-
 const route = useRoute()
 
-const event = ref(null)
-const isOwner = ref(false)
-
-const loading = ref(true)
-const errorMessage = ref('')
-
-async function loadEvent() {
-  loading.value = true
-  errorMessage.value = ''
-  event.value = null
-  isOwner.value = false
-
-
-  try {
+const {
+  data: event,
+  isLoading,
+  error,
+  execute: reload
+} = useAsyncData(
+  async () => {
     const response = await getEventById(route.params.id)
     const body = response.data
-    const eventData = body?.data ?? body
-
-    event.value = eventData
-    commentsCount.value = eventData.commentsCount ?? 0
-    isOwner.value = Boolean(eventData?.isOwner)
-  } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message ||
-      error.message ||
-      'Não foi possível carregar o evento.'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadEvent)
-
-watch(
-  () => route.params.id,
-  () => loadEvent()
+    return body?.data ?? body
+  },
+  { watch: () => route.params.id }
 )
+
+const commentsCount = ref(0)
+
+watch(event, (loaded) => {
+  commentsCount.value = loaded?.commentsCount ?? 0
+})
 </script>
 
 <template>
@@ -57,12 +39,15 @@ watch(
       ← Voltar ao Feed
     </RouterLink>
 
-    <p v-if="loading" class="status-message">
+    <p v-if="isLoading" class="status-message">
       Carregando evento...
     </p>
 
-    <div v-else-if="errorMessage" class="error-message">
-      {{ errorMessage }}
+    <div v-else-if="error" class="error-message">
+      {{ error }}
+      <button type="button" @click="reload">
+        Tentar novamente
+      </button>
     </div>
 
     <article v-else-if="event" class="detail-card">
@@ -103,16 +88,19 @@ watch(
         <p class="description">
           {{ event.description }}
         </p>
+
         <div class="interactions">
           <LikeButton
             :event-id="event.id"
             :initial-liked="Boolean(event.isLiked)"
             :initial-count="event.likesCount ?? 0"
           />
+
           <span class="comments-counter">
             <i class="bi bi-chat"></i> {{ commentsCount }}
           </span>
         </div>
+
         <CommentSection
           :event-id="event.id"
           @count-change="commentsCount = $event"

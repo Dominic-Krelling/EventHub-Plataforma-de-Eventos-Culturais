@@ -1,4 +1,6 @@
+
 const eventService = require('../event/eventService')
+const { parsePagination } = require('../../utils/pagination')
 
 async function create(req, res, next) {
   try {
@@ -40,7 +42,7 @@ async function list(req, res, next) {
 async function listMine(req, res) {
   const userId = req.user.id
   const events = await eventService.listMyEvents(userId)
- 
+
   return res.status(200).json({
     success: true,
     message: 'Eventos do usuário listados com sucesso.',
@@ -86,17 +88,38 @@ async function findById(req, res, next) {
 async function getForEdit(req, res, next) {
   try {
     const id = Number(req.params.id)
+
     if (!Number.isSafeInteger(id) || id < 1) {
-      return res.status(400).json({ success: false, message: 'ID do evento inválido.', errors: [] })
+      return res.status(400).json({
+        success: false,
+        message: 'ID do evento inválido.',
+        errors: []
+      })
     }
+
     const event = await eventService.findEventById(id)
+
     if (!event) {
-      return res.status(404).json({ success: false, message: 'Evento não encontrado.', errors: [] })
+      return res.status(404).json({
+        success: false,
+        message: 'Evento não encontrado.',
+        errors: []
+      })
     }
+
     if (Number(event.userId) !== Number(req.user.id)) {
-      return res.status(403).json({ success: false, message: 'Você não tem permissão para editar este evento.', errors: [] })
+      return res.status(403).json({
+        success: false,
+        message: 'Você não tem permissão para editar este evento.',
+        errors: []
+      })
     }
-    return res.status(200).json({ success: true, message: 'Dados de edição carregados.', data: event })
+
+    return res.status(200).json({
+      success: true,
+      message: 'Dados de edição carregados.',
+      data: event
+    })
   } catch (error) {
     return next(error)
   }
@@ -168,27 +191,9 @@ async function remove(req, res, next) {
 
 async function feed(req, res, next) {
   try {
-    const page = Number(req.query.page ?? 1)
-    const limit = Number(req.query.limit ?? 6)
+    const { page, limit } = parsePagination(req.query)
 
-    if (
-      !Number.isSafeInteger(page) ||
-      !Number.isSafeInteger(limit) ||
-      page < 1 ||
-      limit < 1 ||
-      limit > 50
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: 'Parâmetros de paginação inválidos.',
-        errors: []
-      })
-    }
-
-    const result = await eventService.getFeedEvents({
-      page,
-      limit
-    })
+    const result = await eventService.getFeedEvents({ page, limit })
 
     return res.status(200).json({
       success: true,

@@ -1,3 +1,4 @@
+
 <script setup>
 import {
   computed,
@@ -7,8 +8,12 @@ import {
   ref
 } from 'vue'
 
-import api from '../../services/api'
-import { updateProfile } from '../../services/profileService'
+import {
+  getMyProfile,
+  updateProfile
+} from '../../services/profileService'
+
+import { LIMITS } from '../../config/constants'
 import { getProfileImageUrl } from '../../utils/media'
 import { useAuthStore } from '../../stores/auth'
 
@@ -44,14 +49,12 @@ async function loadProfile() {
   errorMessage.value = ''
 
   try {
-    const response = await api.get('/profile/me')
+    const response = await getMyProfile()
 
     profile.value = response.data
 
     form.fullName = response.data.fullName || ''
     form.bio = response.data.bio || ''
-
-    console.log('Perfil autenticado OK:', response.data)
   } catch (error) {
     errorMessage.value =
       error.message || 'Não foi possível carregar o perfil.'
@@ -71,8 +74,9 @@ function handleFileChange(event) {
     return
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    errorMessage.value = 'A imagem deve ter no máximo 5 MB.'
+  if (file.size > LIMITS.IMAGE_MAX_BYTES) {
+    errorMessage.value =
+      `A imagem deve ter no máximo ${LIMITS.IMAGE_MAX_MB} MB.`
     event.target.value = ''
     return
   }
@@ -96,7 +100,10 @@ async function handleSubmit() {
     return
   }
 
-  if (form.fullName.length > 100 || form.bio.length > 255) {
+  if (
+    form.fullName.length > LIMITS.FULL_NAME_MAX ||
+    form.bio.length > LIMITS.BIO_MAX
+  ) {
     errorMessage.value = 'Verifique os limites dos campos.'
     return
   }
@@ -132,7 +139,9 @@ async function handleSubmit() {
     successMessage.value = 'Perfil atualizado com sucesso!'
   } catch (error) {
     errorMessage.value =
-      error.message || 'Não foi possível atualizar o perfil.'
+      error.response?.data?.message ||
+      error.message ||
+      'Não foi possível atualizar o perfil.'
   } finally {
     saving.value = false
   }
@@ -191,7 +200,7 @@ onUnmounted(() => {
                 v-model="form.fullName"
                 type="text"
                 class="form-control"
-                maxlength="100"
+                :maxlength="LIMITS.FULL_NAME_MAX"
               />
             </div>
 
@@ -205,11 +214,11 @@ onUnmounted(() => {
                 v-model="form.bio"
                 class="form-control"
                 rows="4"
-                maxlength="255"
+                :maxlength="LIMITS.BIO_MAX"
               ></textarea>
 
               <small class="text-muted">
-                {{ form.bio.length }}/255
+                {{ form.bio.length }}/{{ LIMITS.BIO_MAX }}
               </small>
             </div>
 

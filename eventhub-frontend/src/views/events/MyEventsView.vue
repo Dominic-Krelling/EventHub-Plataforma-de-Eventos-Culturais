@@ -1,3 +1,4 @@
+
 <template>
   <main class="my-events">
     <header class="page-header">
@@ -5,12 +6,25 @@
       <RouterLink to="/events/create">Publicar evento</RouterLink>
     </header>
 
-    <p v-if="loading">Carregando eventos...</p>
-    <p v-else-if="errorMessage" class="error">{{ errorMessage }}</p>
-    <p v-else-if="events.length === 0">Você ainda não publicou eventos.</p>
+    <p v-if="isLoading">Carregando eventos...</p>
+
+    <p v-else-if="error" class="error">
+      {{ error }}
+      <button type="button" @click="reload">
+        Tentar novamente
+      </button>
+    </p>
+
+    <p v-else-if="events.length === 0">
+      Você ainda não publicou eventos.
+    </p>
 
     <section v-else class="events-grid">
-      <article v-for="event in events" :key="event.id" class="event-card">
+      <article
+        v-for="event in events"
+        :key="event.id"
+        class="event-card"
+      >
         <RouterLink :to="`/event/${event.id}`">
           <img
             v-if="event.image"
@@ -23,74 +37,90 @@
         <p>{{ event.description }}</p>
 
         <div class="actions">
-          <RouterLink :to="`/event/${event.id}`">Abrir</RouterLink>
-          <RouterLink :to="`/event/${event.id}/edit`">Editar</RouterLink>
+          <RouterLink :to="`/event/${event.id}`">
+            Abrir
+          </RouterLink>
+
+          <RouterLink :to="`/event/${event.id}/edit`">
+            Editar
+          </RouterLink>
+
           <button
             type="button"
-            :disabled="deletingId === event.id"
-            @click="handleDelete(event.id)"
+            :disabled="isDeleting"
+            @click="askToDelete(event)"
           >
-            {{ deletingId === event.id ? 'Excluindo...' : 'Excluir' }}
+            Excluir
           </button>
         </div>
       </article>
     </section>
+
+    <BaseModal
+      :model-value="Boolean(eventToDelete)"
+      title="Excluir evento"
+      :busy="isDeleting"
+      @update:model-value="eventToDelete = null"
+      @confirm="confirmDelete"
+    >
+      <p>
+        Deseja realmente excluir
+        <strong>{{ eventToDelete?.title }}</strong>?
+        Esta ação não pode ser desfeita.
+      </p>
+    </BaseModal>
   </main>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import api from '../../services/api'
-import { deleteEvent } from '../../services/eventServices'
+import { ref } from 'vue'
+import { deleteEvent, getMyEvents } from '../../services/eventServices'
 import { getEventImageUrl } from '../../utils/media'
+import { useAsyncData } from '../../composables/useAsyncData'
+import { useToast } from '../../composables/useToast'
+import BaseModal from '../../components/base/BaseModal.vue'
 
-const events = ref([])
-const loading = ref(true)
-const errorMessage = ref('')
-const deletingId = ref(null)
+const toast = useToast()
 
-async function loadEvents() {
-  loading.value = true
-  errorMessage.value = ''
+const {
+  data: events,
+  isLoading,
+  error,
+  execute: reload
+} = useAsyncData(
+  async () => (await getMyEvents()).data ?? [],
+  { initialData: () => [] }
+)
 
-  try {
-    const response = await api.get('/events/mine')
-    const body = response.data
+const eventToDelete = ref(null)
+const isDeleting = ref(false)
 
-    events.value = Array.isArray(body) ? body : (body?.data || [])
-  } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message ||
-      error.message ||
-      'Não foi possível carregar seus eventos.'
-  } finally {
-    loading.value = false
-  }
+function askToDelete(event) {
+  eventToDelete.value = event
 }
 
-async function handleDelete(id) {
-  const confirmed = window.confirm(
-    'Deseja realmente excluir este evento? Esta ação não pode ser desfeita.'
-  )
+async function confirmDelete() {
+  const target = eventToDelete.value
 
-  if (!confirmed) return
+  if (!target || isDeleting.value) return
 
-  deletingId.value = id
-  errorMessage.value = ''
+  isDeleting.value = true
 
   try {
-    await deleteEvent(id)
-    events.value = events.value.filter((event) => event.id !== id)
-  } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message ||
-      'Não foi possível excluir o evento.'
+    await deleteEvent(target.id)
+
+    events.value = events.value.filter(
+      (event) => event.id !== target.id
+    )
+
+    eventToDelete.value = null
+    toast.success('Evento excluído com sucesso.')
+  } catch {
+    // O interceptor da API já apresenta a mensagem de erro.
   } finally {
-    deletingId.value = null
+    isDeleting.value = false
   }
 }
-
-onMounted(loadEvents)
 </script>
 
 <style scoped>

@@ -1,7 +1,44 @@
+
+<script setup>
+import { computed } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
+import { getPublicProfile } from '../../services/profileService'
+import FollowButton from '../../components/FollowButton.vue'
+import { useAsyncData } from '../../composables/useAsyncData'
+
+import {
+  getProfileImageUrl,
+  getEventImageUrl
+} from '../../utils/media'
+
+const route = useRoute()
+
+const {
+  data: profile,
+  isLoading,
+  error,
+  execute: reload
+} = useAsyncData(
+  async () => {
+    const response = await getPublicProfile(route.params.username)
+    return response.data?.data ?? response.data
+  },
+  {
+    watch: () => route.params.username
+  }
+)
+
+const isOwner = computed(() => Boolean(profile.value?.isOwner))
+</script>
+
 <template>
   <main class="public-profile">
-    <p v-if="loading">Carregando perfil...</p>
-    <p v-else-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="isLoading">Carregando perfil...</p>
+
+    <p v-else-if="error" class="error">
+      {{ error }}
+      <button type="button" @click="reload">Tentar novamente</button>
+    </p>
 
     <template v-else-if="profile">
       <section class="profile-header">
@@ -19,15 +56,27 @@
           <p>{{ profile.bio || 'Este usuário ainda não adicionou uma biografia.' }}</p>
 
           <div class="stats">
-            <RouterLink :to="`/profile/${profile.username}/followers`">  Seguidores: {{ profile.followersCount ?? 0 }}
+            <RouterLink :to="`/profile/${profile.username}/followers`">
+              Seguidores: {{ profile.followersCount ?? 0 }}
             </RouterLink>
-            <RouterLink :to="`/profile/${profile.username}/following`"> Seguindo: {{ profile.followingCount ?? 0 }}
+
+            <RouterLink :to="`/profile/${profile.username}/following`">
+              Seguindo: {{ profile.followingCount ?? 0 }}
             </RouterLink>
-            <span>Eventos: {{ profile.eventsCount ?? profile.events?.length ?? 0 }}</span>
+
+            <span>
+              Eventos: {{ profile.eventsCount ?? profile.events?.length ?? 0 }}
+            </span>
           </div>
-          <RouterLink v-if="isOwner" to="/profile" class="btn btn-outline-secondary btn-sm">
+
+          <RouterLink
+            v-if="isOwner"
+            to="/profile"
+            class="btn btn-outline-secondary btn-sm"
+          >
             Editar Perfil
           </RouterLink>
+
           <FollowButton
             v-else
             :user-id="profile.id"
@@ -56,6 +105,7 @@
                 :src="getEventImageUrl(event.image)"
                 :alt="event.title"
               />
+
               <h3>{{ event.title }}</h3>
             </RouterLink>
 
@@ -64,55 +114,10 @@
         </div>
       </section>
     </template>
+
     <p v-else>Perfil não encontrado.</p>
   </main>
 </template>
-
-<script setup>
-import { useRoute } from 'vue-router'
-import { getPublicProfile } from '../../services/profileService'
-import { computed, onMounted, ref, watch } from 'vue'
-import FollowButton from '../../components/FollowButton.vue'
-
-import {
-  getProfileImageUrl,
-  getEventImageUrl
-} from '../../utils/media'
-
-const route = useRoute()
-
-const profile = ref(null)
-const loading = ref(true)
-const errorMessage = ref('')
-
-const isOwner = computed(() => Boolean(profile.value?.isOwner))
-
-async function loadProfile() {
-  loading.value = true
-  errorMessage.value = ''
-
-  try {
-    const response = await getPublicProfile(route.params.username)
-    profile.value = response.data?.data ?? response.data
-  } catch (error) {
-    profile.value = null
-    errorMessage.value =
-      error.status === 404
-        ? 'Perfil não encontrado.'
-        : error.message ||
-          'Não foi possível carregar este perfil.'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadProfile)
-
-watch(
-  () => route.params.username,
-  () => loadProfile()
-)
-</script>
 
 <style scoped>
 .public-profile {

@@ -1,16 +1,28 @@
+
 <template>
   <main class="liked">
     <h1>Eventos curtidos</h1>
 
-    <p v-if="loading">Carregando eventos...</p>
-    <p v-else-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="isLoading">Carregando eventos...</p>
+
+    <p v-else-if="error" class="error">
+      {{ error }}
+      <button type="button" @click="reload">
+        Tentar novamente
+      </button>
+    </p>
+
     <p v-else-if="events.length === 0">
       Você ainda não curtiu nenhum evento.
       <RouterLink to="/feed">Explorar o feed</RouterLink>
     </p>
 
     <section v-else class="events-grid">
-      <article v-for="event in events" :key="event.id" class="event-card">
+      <article
+        v-for="event in events"
+        :key="event.id"
+        class="event-card"
+      >
         <RouterLink :to="`/event/${event.id}`">
           <img
             v-if="event.image"
@@ -31,8 +43,15 @@
         </RouterLink>
 
         <div class="card-counters">
-          <span><i class="bi bi-heart-fill"></i> {{ event.likesCount ?? 0 }}</span>
-          <span><i class="bi bi-chat"></i> {{ event.commentsCount ?? 0 }}</span>
+          <span>
+            <i class="bi bi-heart-fill"></i>
+            {{ event.likesCount ?? 0 }}
+          </span>
+
+          <span>
+            <i class="bi bi-chat"></i>
+            {{ event.commentsCount ?? 0 }}
+          </span>
         </div>
       </article>
     </section>
@@ -40,33 +59,19 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
 import { getLikedEvents } from '../../services/likeService'
 import { getEventImageUrl } from '../../utils/media'
+import { useAsyncData } from '../../composables/useAsyncData'
 
-const events = ref([])
-const loading = ref(true)
-const errorMessage = ref('')
-
-async function loadEvents() {
-  loading.value = true
-  errorMessage.value = ''
-
-  try {
-    const response = await getLikedEvents()
-    const body = response.data
-    events.value = Array.isArray(body) ? body : body?.data || []
-  } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message ||
-      error.message ||
-      'Não foi possível carregar os eventos curtidos.'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadEvents)
+const {
+  data: events,
+  isLoading,
+  error,
+  execute: reload
+} = useAsyncData(
+  async () => (await getLikedEvents()).data ?? [],
+  { initialData: () => [] }
+)
 </script>
 
 <style scoped>

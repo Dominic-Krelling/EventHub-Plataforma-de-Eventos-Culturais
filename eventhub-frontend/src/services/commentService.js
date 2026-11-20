@@ -5,5 +5,5 @@ export function getComments(eventId) {
 }
 
 export function createComment(eventId, content) {
-  return api.post(`/events/${eventId}/comments`, { content })
+  return api.post(`/events/${eventId}/comments`, { content }, { silent: true })
 }

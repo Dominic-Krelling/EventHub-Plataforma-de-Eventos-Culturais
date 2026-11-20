@@ -5,7 +5,7 @@ export function getMyProfile() {
 }
 
 export function updateProfile(formData) {
-  return api.put('/profile/me', formData)
+  return api.put('/profile/me', formData, { silent: true })
 }
 
 export function getPublicProfile(username) {

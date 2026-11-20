@@ -46,7 +46,7 @@ async function registerUser(
                 'Este e-mail ou usuário já está cadastrado.'
             );
 
-        error.status = 500;
+        error.status = 409;
 
         throw error;
     }
@@ -94,7 +94,7 @@ async function loginUser(
                 'E-mail ou senha inválidos.'
             );
 
-        error.status = 500;
+        error.status = 401;
 
         throw error;
     }
@@ -111,7 +111,7 @@ async function loginUser(
                 'E-mail ou senha inválidos.'
             );
 
-        error.status = 500;
+        error.status = 401;
 
         throw error;
     }

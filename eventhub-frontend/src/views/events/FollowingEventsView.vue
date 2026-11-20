@@ -1,44 +1,18 @@
+
 <script setup>
-import { onMounted, ref } from 'vue'
 import EventCard from '../../components/EventCard.vue'
 import { getFollowingEvents } from '../../services/followService'
+import { usePaginatedList } from '../../composables/usePaginatedList'
 
-const events = ref([])
-const page = ref(1)
-const limit = 12
-
-const loading = ref(false)
-const hasMore = ref(false)
-const errorMessage = ref('')
-
-async function loadEvents(reset = false) {
-  if (loading.value) return
-
-  if (reset) {
-    page.value = 1
-    events.value = []
-  }
-
-  loading.value = true
-  errorMessage.value = ''
-
-  try {
-    const response = await getFollowingEvents(page.value, limit)
-    const items = Array.isArray(response.data) ? response.data : []
-
-    const existingIds = new Set(events.value.map(event => event.id))
-    events.value.push(...items.filter(event => !existingIds.has(event.id)))
-
-    hasMore.value = items.length === limit
-    page.value += 1
-  } catch (error) {
-    errorMessage.value = error.message || 'Erro ao carregar eventos.'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => loadEvents(true))
+const {
+  items: events,
+  hasMore,
+  isLoading,
+  error,
+  loadMore
+} = usePaginatedList(
+  async (page, limit) => (await getFollowingEvents(page, limit)).data
+)
 </script>
 
 <template>
@@ -48,9 +22,11 @@ onMounted(() => loadEvents(true))
       <p>Só aparecem eventos publicados pelas pessoas que você segue.</p>
     </header>
 
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
-      <button type="button" @click="loadEvents()">Tentar novamente</button>
+    <div v-if="error" class="error-message">
+      {{ error }}
+      <button type="button" @click="loadMore">
+        Tentar novamente
+      </button>
     </div>
 
     <div v-if="events.length" class="events-grid">
@@ -62,19 +38,22 @@ onMounted(() => loadEvents(true))
       />
     </div>
 
-    <p v-else-if="!loading && !errorMessage" class="empty-message">
+    <p
+      v-else-if="!isLoading && !error"
+      class="empty-message"
+    >
       Nada por aqui ainda. Siga pessoas para ver os eventos delas ou
       <RouterLink to="/feed">explore o Feed</RouterLink>.
     </p>
 
     <div class="following-actions">
-      <p v-if="loading">Carregando eventos...</p>
+      <p v-if="isLoading">Carregando eventos...</p>
 
       <button
-        v-if="hasMore && !loading"
+        v-if="hasMore && !isLoading"
         type="button"
         class="load-more"
-        @click="loadEvents()"
+        @click="loadMore"
       >
         Carregar mais
       </button>
@@ -134,10 +113,14 @@ onMounted(() => loadEvents(true))
 }
 
 @media (max-width: 900px) {
-  .events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .events-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 600px) {
-  .events-grid { grid-template-columns: 1fr; }
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

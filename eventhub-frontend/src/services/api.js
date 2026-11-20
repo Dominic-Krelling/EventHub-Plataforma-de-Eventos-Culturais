@@ -1,21 +1,19 @@
-
 import axios from 'axios'
+import router from '../router'
+import { MESSAGES, STORAGE_KEYS } from '../config/constants'
+import { useToast } from '../composables/useToast'
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL
 })
 
-// Interceptador de requisições
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('eventhub_token')
+        const token = localStorage.getItem(STORAGE_KEYS.TOKEN)
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`
         }
-
-        // Uploads devem ser enviados como FormData,
-        // sem converter o arquivo em JSON.
         if (config.data instanceof FormData) {
             config.headers.setContentType(undefined)
         } else {
@@ -30,7 +28,31 @@ api.interceptors.request.use(
     }
 )
 
-// Interceptador de respostas
+function notifyIfNeeded(error, message) {
+    const config = error.config || {}
+    const status = error.response?.status ?? null
+    const method = String(config.method || 'get').toLowerCase()
+    const isAction = method !== 'get' && method !== 'head'
+
+    if (status === 401) {
+        localStorage.removeItem(STORAGE_KEYS.TOKEN)
+        localStorage.removeItem(STORAGE_KEYS.USER)
+
+        const current = router.currentRoute.value
+
+        if (current.name !== 'login') {
+            useToast().info('Sua sessão expirou. Entre novamente.')
+            router.push({ name: 'login', query: { redirect: current.fullPath } })
+        }
+
+        return
+    }
+
+    if (isAction && !config.silent) {
+        useToast().error(message)
+    }
+}
+
 api.interceptors.response.use(
     (response) => {
         return response.data
@@ -38,46 +60,30 @@ api.interceptors.response.use(
 
     (error) => {
         if (error.response) {
-            if (error.response.status === 401) {
-                localStorage.removeItem('eventhub_token')
-                localStorage.removeItem('eventhub_user')
-
-                if (window.location.pathname !== '/login') {
-                    const currentPath =
-                        window.location.pathname +
-                        window.location.search
-
-                    window.location.href =
-                        `/login?redirect=${encodeURIComponent(currentPath)}`
-                }
-            }
-
             const apiError = error.response.data || {}
+            const message = apiError.message || MESSAGES.REQUEST_ERROR
+
+            notifyIfNeeded(error, message)
 
             return Promise.reject({
-                message:
-                    apiError.message ||
-                    'Ocorreu um erro na requisição.',
-
+                message,
                 errors: apiError.errors || [],
                 status: error.response.status
             })
         }
 
         if (error.request) {
-            return Promise.reject({
-                message:
-                    'Não foi possível se conectar ao servidor. Verifique sua conexão ou tente novamente.',
+            notifyIfNeeded(error, MESSAGES.NETWORK_ERROR)
 
+            return Promise.reject({
+                message: MESSAGES.NETWORK_ERROR,
                 errors: [],
                 status: null
             })
         }
 
         return Promise.reject({
-            message:
-                'Erro inesperado ao preparar a requisição.',
-
+            message: MESSAGES.UNEXPECTED_ERROR,
             errors: [],
             status: null
         })

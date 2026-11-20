@@ -1,7 +1,14 @@
+
 <script setup>
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api from '../../services/api'
+
+import {
+  getEventForEdit,
+  updateEvent
+} from '../../services/eventServices'
+
+import { LIMITS } from '../../config/constants'
 import { getEventImageUrl } from '../../utils/media'
 
 const route = useRoute()
@@ -26,9 +33,8 @@ async function loadEvent() {
   errorMessage.value = ''
 
   try {
-    const response = await api.get(`/events/${route.params.id}/edit`)
-    const body = response.data
-    const eventData = body?.data ?? body
+    const response = await getEventForEdit(route.params.id)
+    const eventData = response.data
 
     if (!eventData?.id) {
       errorMessage.value = 'Evento não encontrado.'
@@ -40,9 +46,7 @@ async function loadEvent() {
     currentImage.value = eventData.image || ''
   } catch (error) {
     errorMessage.value =
-      error.response?.data?.message ||
-      error.message ||
-      'Não foi possível carregar o evento.'
+      error.message || 'Não foi possível carregar o evento.'
   } finally {
     loading.value = false
   }
@@ -50,6 +54,7 @@ async function loadEvent() {
 
 function handleFileChange(event) {
   const file = event.target.files?.[0]
+
   if (!file) return
 
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
@@ -58,9 +63,18 @@ function handleFileChange(event) {
     return
   }
 
+  if (file.size > LIMITS.IMAGE_MAX_BYTES) {
+    errorMessage.value =
+      `A imagem deve ter no máximo ${LIMITS.IMAGE_MAX_MB} MB.`
+    event.target.value = ''
+    return
+  }
+
   errorMessage.value = ''
 
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+  }
 
   selectedFile.value = file
   previewUrl.value = URL.createObjectURL(file)
@@ -75,8 +89,20 @@ async function handleSubmit() {
     return
   }
 
+  if (form.title.length > LIMITS.TITLE_MAX) {
+    errorMessage.value =
+      `O título deve ter até ${LIMITS.TITLE_MAX} caracteres.`
+    return
+  }
+
   if (!form.description.trim()) {
     errorMessage.value = 'A descrição é obrigatória.'
+    return
+  }
+
+  if (form.description.length > LIMITS.DESCRIPTION_MAX) {
+    errorMessage.value =
+      `A descrição deve ter até ${LIMITS.DESCRIPTION_MAX} caracteres.`
     return
   }
 
@@ -84,6 +110,7 @@ async function handleSubmit() {
 
   try {
     const formData = new FormData()
+
     formData.append('title', form.title.trim())
     formData.append('description', form.description.trim())
 
@@ -91,17 +118,15 @@ async function handleSubmit() {
       formData.append('image', selectedFile.value)
     }
 
-    // Não defina Content-Type manualmente: o navegador cria o boundary.
-    const response = await api.put(`/events/${route.params.id}`, formData)
-    console.log('PUT status:', response.status)
+    await updateEvent(route.params.id, formData)
 
     successMessage.value = 'Evento atualizado com sucesso!'
-    router.push('/events/mine') // ajuste para a rota da sua lista "Meus eventos"
+
+    router.push('/my-events')
   } catch (error) {
+    // updateEvent é silent: o erro aparece no formulário
     errorMessage.value =
-      error.response?.data?.message ||
-      error.message ||
-      'Não foi possível salvar o evento.'
+      error.message || 'Não foi possível salvar o evento.'
   } finally {
     saving.value = false
   }
@@ -110,7 +135,9 @@ async function handleSubmit() {
 onMounted(loadEvent)
 
 onUnmounted(() => {
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+  }
 })
 </script>
 
@@ -121,21 +148,35 @@ onUnmounted(() => {
     <p v-if="loading">Carregando evento...</p>
 
     <form v-else @submit.prevent="handleSubmit">
-      <p v-if="errorMessage" class="text-danger">{{ errorMessage }}</p>
-      <p v-if="successMessage" class="text-success">{{ successMessage }}</p>
+      <p v-if="errorMessage" class="text-danger">
+        {{ errorMessage }}
+      </p>
+
+      <p v-if="successMessage" class="text-success">
+        {{ successMessage }}
+      </p>
 
       <div class="mb-3">
         <label for="title" class="form-label">Título</label>
-        <input id="title" v-model="form.title" type="text" class="form-control" />
+
+        <input
+          id="title"
+          v-model="form.title"
+          type="text"
+          class="form-control"
+          :maxlength="LIMITS.TITLE_MAX"
+        />
       </div>
 
       <div class="mb-3">
         <label for="description" class="form-label">Descrição</label>
+
         <textarea
           id="description"
           v-model="form.description"
           rows="4"
           class="form-control"
+          :maxlength="LIMITS.DESCRIPTION_MAX"
         ></textarea>
       </div>
 
@@ -149,7 +190,10 @@ onUnmounted(() => {
       </div>
 
       <div class="mb-3">
-        <label for="image" class="form-label">Trocar imagem (opcional)</label>
+        <label for="image" class="form-label">
+          Trocar imagem (opcional)
+        </label>
+
         <input
           id="image"
           type="file"
@@ -159,7 +203,11 @@ onUnmounted(() => {
         />
       </div>
 
-      <button type="submit" class="btn btn-primary" :disabled="saving">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        :disabled="saving"
+      >
         {{ saving ? 'Salvando...' : 'Salvar alterações' }}
       </button>
     </form>

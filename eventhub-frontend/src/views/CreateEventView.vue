@@ -1,6 +1,8 @@
 
 <script setup>
 import { ref, reactive, onUnmounted } from 'vue'
+
+import { LIMITS } from '../config/constants'
 import { createEvent } from '../services/eventServices'
 
 const form = reactive({
@@ -55,8 +57,9 @@ function handleImageChange(event) {
     return
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    errors.image = 'A imagem deve ter no máximo 5 MB.'
+  if (file.size > LIMITS.IMAGE_MAX_BYTES) {
+    errors.image =
+      `A imagem deve ter no máximo ${LIMITS.IMAGE_MAX_MB} MB.`
     event.target.value = ''
     return
   }
@@ -72,14 +75,16 @@ function validateForm() {
 
   if (!form.title.trim()) {
     errors.title = 'O título é obrigatório.'
-  } else if (form.title.length > 150) {
-    errors.title = 'O título deve ter até 150 caracteres.'
+  } else if (form.title.length > LIMITS.TITLE_MAX) {
+    errors.title =
+      `O título deve ter até ${LIMITS.TITLE_MAX} caracteres.`
   }
 
   if (!form.description.trim()) {
     errors.description = 'A descrição é obrigatória.'
-  } else if (form.description.length > 2000) {
-    errors.description = 'A descrição deve ter até 2000 caracteres.'
+  } else if (form.description.length > LIMITS.DESCRIPTION_MAX) {
+    errors.description =
+      `A descrição deve ter até ${LIMITS.DESCRIPTION_MAX} caracteres.`
   }
 
   if (!imageFile.value) {
@@ -99,12 +104,10 @@ async function handleSubmit() {
 
   formData.append('title', form.title.trim())
   formData.append('description', form.description.trim())
-
-  // O nome precisa ser exatamente "image".
   formData.append('image', imageFile.value)
 
-  // Diagnóstico: confira os três campos no Console.
   console.log('Campos enviados:')
+
   for (const [key, value] of formData.entries()) {
     console.log(key, value)
   }
@@ -172,7 +175,7 @@ onUnmounted(clearPreview)
             id="title"
             v-model="form.title"
             type="text"
-            maxlength="150"
+            :maxlength="LIMITS.TITLE_MAX"
             placeholder="Ex.: Festival Cultural EventHub"
             :disabled="loading"
           />
@@ -188,7 +191,7 @@ onUnmounted(clearPreview)
           <textarea
             id="description"
             v-model="form.description"
-            maxlength="2000"
+            :maxlength="LIMITS.DESCRIPTION_MAX"
             rows="5"
             placeholder="Descreva o evento..."
             :disabled="loading"
@@ -213,7 +216,7 @@ onUnmounted(clearPreview)
 
           <small>
             Formatos permitidos: JPG, PNG e WEBP.
-            Tamanho máximo: 5 MB.
+            Tamanho máximo: {{ LIMITS.IMAGE_MAX_MB }} MB.
           </small>
 
           <small v-if="errors.image" class="error">

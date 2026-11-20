@@ -1,92 +1,82 @@
+
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
 import { getPublicProfile } from '../../services/profileService'
 import { getFollowers, getFollowing } from '../../services/followService'
 import { getProfileImageUrl } from '../../utils/media'
+import { useAsyncData } from '../../composables/useAsyncData'
 
 const props = defineProps({
-  kind: { type: String, required: true } 
+  kind: { type: String, required: true }
 })
 
 const route = useRoute()
 
-const profile = ref(null)
-const people = ref([])
-const loading = ref(false)
-const errorMessage = ref('')
-
-const displayName = computed(
-  () => profile.value?.fullName || profile.value?.username || ''
-)
-
-async function loadList() {
-  loading.value = true
-  errorMessage.value = ''
-  people.value = []
-
-  try {
+const { data, isLoading, error } = useAsyncData(
+  async () => {
     const profileResponse = await getPublicProfile(route.params.username)
-    profile.value = profileResponse.data?.data ?? profileResponse.data
+    const profile = profileResponse.data?.data ?? profileResponse.data
 
     const listResponse =
       props.kind === 'followers'
-        ? await getFollowers(profile.value.id)
-        : await getFollowing(profile.value.id)
+        ? await getFollowers(profile.id)
+        : await getFollowing(profile.id)
 
-    people.value = listResponse.data?.data ?? listResponse.data ?? []
-  } catch (error) {
-    profile.value = null
-    errorMessage.value =
-      error.status === 404
-        ? 'Usuário não encontrado.'
-        : error.message || 'Não foi possível carregar a lista.'
-  } finally {
-    loading.value = false
+    const result = listResponse.data?.data ?? listResponse.data
+
+    return {
+      profile,
+      people: Array.isArray(result) ? result : []
+    }
+  },
+  {
+    watch: () => [props.kind, route.params.username]
   }
-}
+)
 
-watch(
-  () => [props.kind, route.params.username],
-  loadList,
-  { immediate: true }
+const people = computed(() => data.value?.people ?? [])
+
+const displayName = computed(
+  () => data.value?.profile?.fullName || data.value?.profile?.username || ''
 )
 </script>
 
 <template>
   <main class="follow-list">
     <RouterLink
-      v-if="profile || route.params.username"
+      v-if="route.params.username"
       :to="`/profile/${route.params.username}`"
       class="back-link"
     >
       ← Voltar ao perfil
     </RouterLink>
 
-    <h1 v-if="profile">{{ displayName }}</h1>
+    <h1 v-if="data">{{ displayName }}</h1>
 
     <nav class="tabs" aria-label="Seguidores e seguindo">
       <RouterLink
         :to="`/profile/${route.params.username}/followers`"
         class="tab"
-        :class="{ active: kind === 'followers' }"
+        :class="{ active: props.kind === 'followers' }"
       >
         Seguidores
       </RouterLink>
+
       <RouterLink
         :to="`/profile/${route.params.username}/following`"
         class="tab"
-        :class="{ active: kind === 'following' }"
+        :class="{ active: props.kind === 'following' }"
       >
         Seguindo
       </RouterLink>
     </nav>
 
-    <p v-if="loading">Carregando...</p>
-    <p v-else-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="isLoading">Carregando...</p>
+    <p v-else-if="error" class="error">{{ error }}</p>
 
     <p v-else-if="people.length === 0" class="empty">
-      <template v-if="kind === 'followers'">
+      <template v-if="props.kind === 'followers'">
         {{ displayName }} ainda não tem seguidores.
       </template>
       <template v-else>
@@ -97,7 +87,11 @@ watch(
     <ul v-else class="people">
       <li v-for="person in people" :key="person.id">
         <RouterLink :to="`/profile/${person.username}`" class="person">
-          <img :src="getProfileImageUrl(person.profilePicture)" alt="Foto de perfil" />
+          <img
+            :src="getProfileImageUrl(person.profilePicture)"
+            alt="Foto de perfil"
+          />
+
           <div>
             <strong>{{ person.fullName || person.username }}</strong>
             <span>@{{ person.username }}</span>

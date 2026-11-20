@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { STORAGE_KEYS } from '../config/constants'
 
 const routes = [
   {
@@ -145,7 +146,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const token = localStorage.getItem('eventhub_token')
+  const token = localStorage.getItem(STORAGE_KEYS.TOKEN)
 
   if (to.meta.requiresAuth && !token) {
     return {
@@ -156,7 +157,7 @@ router.beforeEach((to) => {
 
   if (to.meta.requiresAdmin && token) {
     try {
-      const storedUser = JSON.parse(localStorage.getItem('eventhub_user') || 'null')
+      const storedUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || 'null')
 
       if (!storedUser?.isAdmin) {
         return { name: 'feed' }

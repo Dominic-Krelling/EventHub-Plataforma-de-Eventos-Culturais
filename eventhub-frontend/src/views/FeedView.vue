@@ -1,56 +1,18 @@
 
 <script setup>
-import { onMounted, ref } from 'vue'
 import EventCard from '../components/EventCard.vue'
 import { getFeed } from '../services/eventServices'
+import { usePaginatedList } from '../composables/usePaginatedList'
 
-const events = ref([])
-const page = ref(1)
-const limit = 6
-
-const loading = ref(false)
-const hasMore = ref(false)
-const errorMessage = ref('')
-
-async function loadEvents(reset = false) {
-  if (loading.value) return
-
-  if (reset) {
-    page.value = 1
-    events.value = []
-  }
-
-  loading.value = true
-  errorMessage.value = ''
-
-  try {
-    const response = await getFeed(page.value, limit)
-
-    const items = response.data?.items || []
-    const pagination = response.data?.pagination || {}
-
-    const existingIds = new Set(
-      events.value.map(event => event.id)
-    )
-
-    const newItems = items.filter(
-      event => !existingIds.has(event.id)
-    )
-
-    events.value.push(...newItems)
-
-    hasMore.value = Boolean(pagination.hasMore)
-
-    page.value += 1
-  } catch (error) {
-    errorMessage.value =
-      error.message || 'Erro ao carregar eventos.'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => loadEvents(true))
+const {
+  items: events,
+  hasMore,
+  isLoading,
+  error,
+  loadMore
+} = usePaginatedList(
+  async (page, limit) => (await getFeed(page, limit)).data
+)
 </script>
 
 <template>
@@ -69,10 +31,10 @@ onMounted(() => loadEvents(true))
       </RouterLink>
     </header>
 
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
+    <div v-if="error" class="error-message">
+      {{ error }}
 
-      <button @click="loadEvents()">
+      <button type="button" @click="loadMore">
         Tentar novamente
       </button>
     </div>
@@ -86,19 +48,22 @@ onMounted(() => loadEvents(true))
     </div>
 
     <p
-      v-else-if="!loading && !errorMessage"
+      v-else-if="!isLoading && !error"
       class="empty-message"
     >
       Nenhum evento publicado ainda.
     </p>
 
     <div class="feed-actions">
-      <p v-if="loading">Carregando eventos...</p>
+      <p v-if="isLoading">
+        Carregando eventos...
+      </p>
 
       <button
-        v-if="hasMore && !loading"
+        v-if="hasMore && !isLoading"
+        type="button"
         class="load-more"
-        @click="loadEvents()"
+        @click="loadMore"
       >
         Carregar mais
       </button>

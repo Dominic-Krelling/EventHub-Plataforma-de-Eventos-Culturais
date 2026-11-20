@@ -1,12 +1,15 @@
+
 <script setup>
-import { onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { createComment, getComments } from '../services/commentService'
 import { getProfileImageUrl } from '../utils/media'
 import { formatDateTime } from '../utils/format'
+import { LIMITS } from '../config/constants'
+import { useAsyncData } from '../composables/useAsyncData'
 
-const MAX = 500
+const MAX = LIMITS.COMMENT_MAX
 
 const props = defineProps({
   eventId: { type: [Number, String], required: true }
@@ -17,31 +20,26 @@ const emit = defineEmits(['count-change'])
 const authStore = useAuthStore()
 const route = useRoute()
 
-const comments = ref([])
-const loading = ref(true)
-const loadError = ref('')
+const {
+  data: comments,
+  isLoading: loading,
+  error: loadError,
+  execute: reloadComments
+} = useAsyncData(
+  async () => {
+    const response = await getComments(props.eventId)
+    const result = response.data?.data ?? response.data
+    return Array.isArray(result) ? result : []
+  },
+  {
+    watch: () => props.eventId,
+    initialData: () => []
+  }
+)
 
 const content = ref('')
 const sending = ref(false)
 const formError = ref('')
-
-async function loadComments() {
-  loading.value = true
-  loadError.value = ''
-
-  try {
-    const response = await getComments(props.eventId)
-    const body = response.data
-    comments.value = Array.isArray(body) ? body : body?.data || []
-  } catch (error) {
-    loadError.value =
-      error.response?.data?.message ||
-      error.message ||
-      'Não foi possível carregar os comentários.'
-  } finally {
-    loading.value = false
-  }
-}
 
 async function handleSubmit() {
   formError.value = ''
@@ -64,7 +62,6 @@ async function handleSubmit() {
     const response = await createComment(props.eventId, text)
     const newComment = response.data?.data ?? response.data
 
-    // novo comentário no topo, sem recarregar a lista
     comments.value.unshift(newComment)
     content.value = ''
 
@@ -78,17 +75,17 @@ async function handleSubmit() {
     sending.value = false
   }
 }
-
-onMounted(loadComments)
-
-watch(() => props.eventId, loadComments)
 </script>
 
 <template>
   <section class="comments">
     <h2>Comentários ({{ comments.length }})</h2>
 
-    <form v-if="authStore.isAuthenticated" class="comment-form" @submit.prevent="handleSubmit">
+    <form
+      v-if="authStore.isAuthenticated"
+      class="comment-form"
+      @submit.prevent="handleSubmit"
+    >
       <textarea
         v-model="content"
         rows="3"
@@ -117,11 +114,22 @@ watch(() => props.eventId, loadComments)
     </p>
 
     <p v-if="loading">Carregando comentários...</p>
-    <p v-else-if="loadError" class="error">{{ loadError }}</p>
-    <p v-else-if="comments.length === 0">Ainda não há comentários.</p>
+    <p v-else-if="loadError" class="error">
+      {{ loadError }}
+      <button type="button" @click="reloadComments">
+        Tentar novamente
+      </button>
+    </p>
+    <p v-else-if="comments.length === 0">
+      Ainda não há comentários.
+    </p>
 
     <ul v-else class="comment-list">
-      <li v-for="comment in comments" :key="comment.id" class="comment">
+      <li
+        v-for="comment in comments"
+        :key="comment.id"
+        class="comment"
+      >
         <img
           :src="getProfileImageUrl(comment.author?.profilePicture)"
           alt=""
@@ -133,10 +141,10 @@ watch(() => props.eventId, loadComments)
             <RouterLink :to="`/profile/${comment.author?.username}`">
               {{ comment.author?.fullName || comment.author?.username || 'Usuário' }}
             </RouterLink>
+
             <small>{{ formatDateTime(comment.createdAt) }}</small>
           </header>
 
-          <!-- {{ }} escapa o HTML. Nunca use v-html aqui. -->
           <p class="comment-text">{{ comment.content }}</p>
         </div>
       </li>
@@ -224,7 +232,6 @@ watch(() => props.eventId, loadComments)
   text-decoration: none;
 }
 
-/* preserva quebras de linha e evita estourar o layout */
 .comment-text {
   margin: 4px 0 0;
   white-space: pre-wrap;

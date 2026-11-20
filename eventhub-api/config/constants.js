@@ -7,6 +7,13 @@ module.exports = {
     BIO_MAX: 255,
     DESCRIPTION_MAX: 2000,
     TITLE_MAX: 150,
-    COMMENT_MAX: 500
+    COMMENT_MAX: 500,
+    IMAGE_MAX_BYTES: 5 * 1024 * 1024
+  },
+
+  PAGINATION: {
+    DEFAULT_PAGE: 1,
+    DEFAULT_LIMIT: 12,
+    MAX_LIMIT: 50
   }
 }

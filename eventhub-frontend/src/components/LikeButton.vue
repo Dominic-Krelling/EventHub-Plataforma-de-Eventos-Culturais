@@ -1,9 +1,9 @@
+
 <script setup>
 import { ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
 import { toggleLike } from '../services/likeService'
 import { formatCount } from '../utils/format'
+import { useAuthenticatedAction } from '../composables/useAuthenticatedAction'
 
 const props = defineProps({
   eventId: { type: [Number, String], required: true },
@@ -13,14 +13,10 @@ const props = defineProps({
 
 const emit = defineEmits(['change'])
 
-const authStore = useAuthStore()
-const router = useRouter()
-const route = useRoute()
+const { run, isBusy } = useAuthenticatedAction()
 
 const liked = ref(props.initialLiked)
 const count = ref(props.initialCount)
-const isBusy = ref(false)
-const errorMessage = ref('')
 
 watch(
   () => [props.initialLiked, props.initialCount],
@@ -30,47 +26,35 @@ watch(
   }
 )
 
-async function handleClick() {
-  // Visitante: vai ao login e volta para esta página
-  if (!authStore.isAuthenticated) {
-    router.push({ path: '/login', query: { redirect: route.fullPath } })
-    return
-  }
+function handleClick() {
+  return run(async () => {
+    const previousLiked = liked.value
+    const previousCount = count.value
 
-  if (isBusy.value) return
+    const nowLiked = !previousLiked
 
-  isBusy.value = true
-  errorMessage.value = ''
+    liked.value = nowLiked
+    count.value = Math.max(
+      0,
+      previousCount + (nowLiked ? 1 : -1)
+    )
 
-  // Passo 1: guardar o estado anterior
-  const previousLiked = liked.value
-  const previousCount = count.value
+    try {
+      const response = await toggleLike(props.eventId)
+      const data = response.data?.data ?? response.data
 
-  // Passo 2: atualizar a tela na hora
-  liked.value = !previousLiked
-  count.value = Math.max(0, previousCount + (previousLiked ? -1 : 1))
+      liked.value = data.liked
+      count.value = data.likesCount
 
-  try {
-    const response = await toggleLike(props.eventId)
-    const data = response.data?.data ?? response.data
-
-    // Confirma com o valor real do servidor
-    liked.value = data.liked
-    count.value = data.likesCount
-
-    emit('change', { liked: liked.value, likesCount: count.value })
-  } catch (error) {
-    // Passo 3: rollback se a API falhar
-    liked.value = previousLiked
-    count.value = previousCount
-
-    errorMessage.value =
-      error.response?.data?.message ||
-      error.message ||
-      'Não foi possível atualizar a curtida.'
-  } finally {
-    isBusy.value = false
-  }
+      emit('change', {
+        liked: liked.value,
+        likesCount: count.value
+      })
+    } catch {
+      liked.value = previousLiked
+      count.value = previousCount
+    }
+  })
 }
 </script>
 
@@ -87,8 +71,6 @@ async function handleClick() {
       <i :class="liked ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
       <span>{{ formatCount(count) }}</span>
     </button>
-
-    <p v-if="errorMessage" class="like-error">{{ errorMessage }}</p>
   </div>
 </template>
 
@@ -115,11 +97,5 @@ async function handleClick() {
 .like-button:disabled {
   opacity: 0.7;
   cursor: wait;
-}
-
-.like-error {
-  margin: 8px 0 0;
-  color: #c62828;
-  font-size: 0.9rem;
 }
 </style>

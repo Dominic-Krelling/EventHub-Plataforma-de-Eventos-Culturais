@@ -41,25 +41,15 @@ app.use(
   '/uploads',
   express.static(path.join(__dirname, 'public/uploads'))
 )
-
 app.use('/api', indexRouter)
 
 app.use('/api/events', eventRoutes)
 app.use('/api/feed', feedRoutes)
 app.use('/api', searchRoutes)
 app.use('/api', userRoutes)
-app.use('/api/events', eventRoutes)
-app.use('/api/feed', feedRoutes)
 app.use('/api', likeRoutes)
 app.use('/api', commentRoutes)
 app.use('/api', followRoutes)
-
-app.get(
-  '/api/my-events',
-  isAuthenticated,
-  asyncHandler(eventController.listMine)
-)
-
 
 app.use((req, res) => {
   res.status(404).json({

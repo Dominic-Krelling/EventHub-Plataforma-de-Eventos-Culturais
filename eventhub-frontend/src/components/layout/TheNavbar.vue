@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from '../../stores/auth'
-import UserMenu from '../UserMenu.vue'
+import UserMenu from '../userMenu.vue'
+
 
 const authStore = useAuthStore()
 </script>

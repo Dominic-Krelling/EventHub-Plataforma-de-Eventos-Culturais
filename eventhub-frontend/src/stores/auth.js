@@ -1,8 +1,13 @@
 import { defineStore } from 'pinia'
 import { login as loginRequest } from '../services/authServices'
+import { STORAGE_KEYS } from '../config/constants'
 
-const TOKEN_KEY = 'eventhub_token'
-const USER_KEY = 'eventhub_user'
+const TOKEN_KEY = STORAGE_KEYS.TOKEN
+const USER_KEY = STORAGE_KEYS.USER
+
+
+//const TOKEN_KEY = 'eventhub_token'
+//const USER_KEY = 'eventhub_user'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({

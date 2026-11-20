@@ -73,7 +73,7 @@ router.get(
     isAuthenticated,
 
     asyncHandler(
-        userController.getPublicProfile
+        userController.getMyProfile
     )
 );
 
@@ -95,6 +95,8 @@ router.put(
 
 router.get(
     '/profile/:username',
+
+    optionalAuth,
 
     asyncHandler(
         userController.getPublicProfile

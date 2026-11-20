@@ -1,3 +1,4 @@
+
 const { Op } = require('sequelize')
 const fs = require('fs/promises')
 const path = require('path')
@@ -8,6 +9,7 @@ const Like = require('../like/likeModel')
 const Comment = require('../comment/commentModel')
 const Follow = require('../follow/followModel')
 const sequelize = require('../../config/database')
+const { PAGINATION } = require('../../config/constants')
 
 const publicUserAttributes = [
   'id',
@@ -85,25 +87,30 @@ async function getEventDetails(id, currentUserId = null) {
   })
 
   const data = event.toJSON()
-  
+
   let isLiked = false
 
-    if (currentUserId != null) {
-      const like = await Like.findOne({
-        where: { userId: currentUserId, eventId: data.id }
-      })
-      isLiked = Boolean(like)
-    }
+  if (currentUserId != null) {
+    const like = await Like.findOne({
+      where: { userId: currentUserId, eventId: data.id }
+    })
+
+    isLiked = Boolean(like)
+  }
 
   return {
     ...data,
+    isLiked,
     isOwner:
       currentUserId != null &&
       Number(data.userId) === Number(currentUserId)
   }
 }
 
-async function getFeedEvents({ page = 1, limit = 6 } = {}) {
+async function getFeedEvents({
+  page = PAGINATION.DEFAULT_PAGE,
+  limit = PAGINATION.DEFAULT_LIMIT
+} = {}) {
   const offset = (page - 1) * limit
 
   const { count, rows } = await Event.findAndCountAll({
@@ -143,11 +150,16 @@ async function getFeedEvents({ page = 1, limit = 6 } = {}) {
   }
 }
 
-async function getFollowingEvents(userId, page = 1, limit = 12) {
+async function getFollowingEvents(
+  userId,
+  page = PAGINATION.DEFAULT_PAGE,
+  limit = PAGINATION.DEFAULT_LIMIT
+) {
   const rows = await Follow.findAll({
     where: { followerId: userId },
     attributes: ['followingId']
   })
+
   const followedIds = rows.map((row) => Number(row.followingId))
 
   // Quem não segue ninguém: devolve cedo, sem rodar a consulta (Op.in com [] é inútil).
@@ -159,7 +171,11 @@ async function getFollowingEvents(userId, page = 1, limit = 12) {
       'likesCount', 'commentsCount', 'viewsCount', 'createdAt'
     ],
     where: { userId: { [Op.in]: followedIds } },
-    include: [{ model: User, as: 'creator', attributes: publicUserAttributes }],
+    include: [{
+      model: User,
+      as: 'creator',
+      attributes: publicUserAttributes
+    }],
     order: [['createdAt', 'DESC'], ['id', 'DESC']],
     limit,
     offset: (page - 1) * limit
@@ -258,6 +274,7 @@ async function removeEvent(id, userId) {
 
   const image = event.image
   const owner = await User.findByPk(userId)
+
   await sequelize.transaction(async (transaction) => {
     await Like.destroy({ where: { eventId: event.id }, transaction })
     await Comment.destroy({ where: { eventId: event.id }, transaction })
