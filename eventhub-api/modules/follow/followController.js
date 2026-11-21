@@ -4,21 +4,8 @@ const eventService = require('../event/eventService')
 const { parsePagination } = require('../../utils/pagination')
 const { parseId } = require('../../utils/parseId')
 
-// req.params.userId é sempre string: a conversão para número acontece aqui, na borda
-// (utils/parseId). Sem ela, '5' === 5 daria false e a pessoa seguiria a si mesma.
-const parseUserId = parseId
-
-function invalidId(res) {
-  return res.status(400).json({
-    success: false,
-    message: 'ID do usuário inválido.',
-    errors: []
-  })
-}
-
 async function toggleFollow(req, res) {
-  const followingId = parseUserId(req.params.userId)
-  if (!followingId) return invalidId(res)
+  const followingId = parseId(req.params.userId, 'usuário')
 
   const data = await followService.toggleFollow({
     followerId: Number(req.user.id),
@@ -35,8 +22,7 @@ async function toggleFollow(req, res) {
 }
 
 async function followStatus(req, res) {
-  const followingId = parseUserId(req.params.userId)
-  if (!followingId) return invalidId(res)
+  const followingId = parseId(req.params.userId, 'usuário')
 
   const data = await followService.getFollowStatus({
     followerId: Number(req.user.id),
@@ -51,8 +37,7 @@ async function followStatus(req, res) {
 }
 
 async function listFollowers(req, res) {
-  const userId = parseUserId(req.params.userId)
-  if (!userId) return invalidId(res)
+  const userId = parseId(req.params.userId, 'usuário')
 
   const data = await followService.getFollowers(userId)
 
@@ -64,8 +49,7 @@ async function listFollowers(req, res) {
 }
 
 async function listFollowing(req, res) {
-  const userId = parseUserId(req.params.userId)
-  if (!userId) return invalidId(res)
+  const userId = parseId(req.params.userId, 'usuário')
 
   const data = await followService.getFollowing(userId)
 

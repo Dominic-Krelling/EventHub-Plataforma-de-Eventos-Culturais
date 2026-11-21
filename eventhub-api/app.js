@@ -18,13 +18,12 @@ const asyncHandler = require('./middlewares/asyncHandler')
 const likeRoutes = require('./modules/like/likeRoutes')
 const commentRoutes = require('./modules/comment/commentRoutes')
 const followRoutes = require('./modules/follow/followRoutes')
-const { isAuthenticated } = require('./middlewares/auth')
+const collectionRoutes = require('./modules/collection/collectionRoutes')
 
+const { isAuthenticated } = require('./middlewares/auth')
 const errorHandler = require('./middlewares/errorHandler')
 
 const app = express()
-
-//app.set('etag',false)
 
 app.use(logger('dev'))
 
@@ -35,12 +34,18 @@ app.use(cors({
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.get('/api/my-events', isAuthenticated, asyncHandler(eventController.listMine))
+
+app.get(
+  '/api/my-events',
+  isAuthenticated,
+  asyncHandler(eventController.listMine)
+)
 
 app.use(
   '/uploads',
   express.static(path.join(__dirname, 'public/uploads'))
 )
+
 app.use('/api', indexRouter)
 
 app.use('/api/events', eventRoutes)
@@ -50,6 +55,7 @@ app.use('/api', userRoutes)
 app.use('/api', likeRoutes)
 app.use('/api', commentRoutes)
 app.use('/api', followRoutes)
+app.use('/api', collectionRoutes)
 
 app.use((req, res) => {
   res.status(404).json({

@@ -1,11 +1,15 @@
-/**
- * Converte um parâmetro de rota (sempre string) em id numérico.
- * Devolve null quando não é um inteiro positivo seguro ('abc', '-1', '0', '1.5').
- * O controller responde 400 nesse caso; o Service já recebe um número.
- */
-function parseId(value) {
-  const id = Number(value)
-  return Number.isSafeInteger(id) && id > 0 ? id : null
+function parseId(rawValue, label) {
+  const isNumber = typeof rawValue === 'number'
+  const isDigits = typeof rawValue === 'string' && /^\d+$/.test(rawValue)
+  const id = isNumber || isDigits ? Number(rawValue) : NaN
+
+  if (!Number.isSafeInteger(id) || id < 1) {
+    const error = new Error(`Identificador de ${label} inválido.`)
+    error.status = 400
+    throw error
+  }
+
+  return id
 }
 
 module.exports = { parseId }

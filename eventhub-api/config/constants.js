@@ -1,3 +1,4 @@
+
 module.exports = {
   VALIDATION: {
     USERNAME_MIN: 3,
@@ -8,6 +9,9 @@ module.exports = {
     DESCRIPTION_MAX: 2000,
     TITLE_MAX: 150,
     COMMENT_MAX: 500,
+    COLLECTION_TITLE_MIN: 3,
+    COLLECTION_TITLE_MAX: 100,
+    COLLECTION_DESCRIPTION_MAX: 500,
     IMAGE_MAX_BYTES: 5 * 1024 * 1024
   },
 
@@ -15,5 +19,11 @@ module.exports = {
     DEFAULT_PAGE: 1,
     DEFAULT_LIMIT: 12,
     MAX_LIMIT: 50
+  },
+
+  SEARCH: {
+    MIN_LENGTH: 2,
+    MAX_LENGTH: 100,
+    LIMIT: 10
   }
 }

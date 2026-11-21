@@ -11,6 +11,10 @@ const Follow = require('../follow/followModel')
 const sequelize = require('../../config/database')
 const { PAGINATION } = require('../../config/constants')
 
+const Collection = require('../collection/collectionModel')
+const CollectionEvent = require('../collection/collectionEventModel')
+
+
 const publicUserAttributes = [
   'id',
   'username',
@@ -276,6 +280,26 @@ async function removeEvent(id, userId) {
   const owner = await User.findByPk(userId)
 
   await sequelize.transaction(async (transaction) => {
+
+    const links = await CollectionEvent.findAll({
+      where: { eventId: event.id },
+      attributes: ['collectionId'],
+      transaction
+    })
+
+    for (const link of links) {
+      await Collection.decrement('eventsCount', {
+        by: 1,
+        where: { id: link.collectionId },
+        transaction
+      })
+    }
+
+    await CollectionEvent.destroy({
+      where: { eventId: event.id },
+      transaction
+    })
+
     await Like.destroy({ where: { eventId: event.id }, transaction })
     await Comment.destroy({ where: { eventId: event.id }, transaction })
 

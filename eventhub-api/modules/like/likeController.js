@@ -1,21 +1,9 @@
+
 const likeService = require('./likeService')
-
-function parseId(value) {
-  const id = Number(value)
-  return Number.isSafeInteger(id) && id > 0 ? id : null
-}
-
-function invalidId(res) {
-  return res.status(400).json({
-    success: false,
-    message: 'ID do evento inválido.',
-    errors: []
-  })
-}
+const { parseId } = require('../../utils/parseId')
 
 async function toggleLike(req, res) {
-  const eventId = parseId(req.params.eventId)
-  if (!eventId) return invalidId(res)
+  const eventId = parseId(req.params.eventId, 'evento')
 
   const data = await likeService.toggleLike({
     userId: req.user.id,
@@ -30,8 +18,7 @@ async function toggleLike(req, res) {
 }
 
 async function likeStatus(req, res) {
-  const eventId = parseId(req.params.eventId)
-  if (!eventId) return invalidId(res)
+  const eventId = parseId(req.params.eventId, 'evento')
 
   const data = await likeService.getLikeStatus({
     userId: req.user?.id ?? null,
@@ -55,4 +42,8 @@ async function listLiked(req, res) {
   })
 }
 
-module.exports = { toggleLike, likeStatus, listLiked }
+module.exports = {
+  toggleLike,
+  likeStatus,
+  listLiked
+}

@@ -1,21 +1,9 @@
+
 const commentService = require('./commentService')
-
-function parseId(value) {
-  const id = Number(value)
-  return Number.isSafeInteger(id) && id > 0 ? id : null
-}
-
-function invalidId(res) {
-  return res.status(400).json({
-    success: false,
-    message: 'ID do evento inválido.',
-    errors: []
-  })
-}
+const { parseId } = require('../../utils/parseId')
 
 async function create(req, res) {
-  const eventId = parseId(req.params.eventId)
-  if (!eventId) return invalidId(res)
+  const eventId = parseId(req.params.eventId, 'evento')
 
   const comment = await commentService.createComment({
     userId: req.user.id,
@@ -31,8 +19,7 @@ async function create(req, res) {
 }
 
 async function list(req, res) {
-  const eventId = parseId(req.params.eventId)
-  if (!eventId) return invalidId(res)
+  const eventId = parseId(req.params.eventId, 'evento')
 
   const comments = await commentService.listComments(eventId)
 
@@ -43,4 +30,7 @@ async function list(req, res) {
   })
 }
 
-module.exports = { create, list }
+module.exports = {
+  create,
+  list
+}
