@@ -1,13 +1,42 @@
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { useNotificationsStore } from '../../stores/notifications'
 import { SEARCH } from '../../config/constants'
 import UserMenu from '../userMenu.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
+
+const notificationsStore = useNotificationsStore()
+
+const unreadCount = computed(() => notificationsStore.unreadCount)
+
+const badgeText = computed(() =>
+  unreadCount.value > 99 ? '99+' : String(unreadCount.value)
+)
+
+const bellLabel = computed(() =>
+  unreadCount.value > 0
+    ? `Notificações (${unreadCount.value} não lidas)`
+    : 'Notificações'
+)
+
+watch(
+  () => authStore.isAuthenticated,
+  (isLogged) => {
+    if (isLogged) {
+      notificationsStore.startPolling()
+    } else {
+      notificationsStore.stopPolling()
+    }
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => notificationsStore.stopPolling())
 
 const searchText = ref('')
 
@@ -60,6 +89,18 @@ function submitSearch() {
         <router-link to="/my-events">
           <i class="bi bi-calendar-check me-1"></i>
           Meus Eventos
+        </router-link>
+
+        <router-link
+          to="/notifications"
+          class="bell-link"
+          :aria-label="bellLabel"
+        >
+          <i class="bi bi-bell" aria-hidden="true"></i>
+
+          <span v-if="unreadCount > 0" class="bell-badge">
+            {{ badgeText }}
+          </span>
         </router-link>
 
         <UserMenu v-if="authStore.user" />
@@ -127,6 +168,35 @@ function submitSearch() {
   background: #ffd966;
   color: #3b2a6b;
   cursor: pointer;
+}
+
+.bell-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 1.1rem;
+}
+
+.bell-badge {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #dc3545;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 1;
 }
 
 @media (max-width: 768px) {

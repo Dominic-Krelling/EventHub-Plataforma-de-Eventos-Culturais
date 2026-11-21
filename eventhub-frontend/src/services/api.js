@@ -41,7 +41,6 @@ function notifyIfNeeded(error, message) {
         const current = router.currentRoute.value
 
         if (current.name !== 'login') {
-            useToast().info('Sua sessão expirou. Entre novamente.')
             router.push({ name: 'login', query: { redirect: current.fullPath } })
         }
 

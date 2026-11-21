@@ -27,6 +27,24 @@ export const SEARCH = {
   DEBOUNCE_MS: 400
 }
 
+export const NOTIFICATIONS = {
+  POLL_MS: 30000
+}
+
+export const NOTIFICATION_TEXT = {
+  like: 'curtiu o seu evento',
+  comment: 'comentou no seu evento',
+  follow: 'começou a seguir você'
+}
+
+export const REPORT_REASONS = [
+  { value: 'inappropriate_content', label: 'Conteúdo impróprio' },
+  { value: 'harassment', label: 'Assédio ou discurso de ódio' },
+  { value: 'spam', label: 'Spam ou golpes' },
+  { value: 'copyright', label: 'Violação de direitos autorais' },
+  { value: 'other', label: 'Outro' }
+]
+
 export const PAGE_SIZE = 12
 
 export const TOAST_DURATION = {

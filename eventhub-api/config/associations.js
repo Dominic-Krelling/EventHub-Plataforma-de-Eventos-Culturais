@@ -6,6 +6,8 @@ const Comment = require('../modules/comment/commentModel')
 const Follow = require('../modules/follow/followModel')
 const Collection = require('../modules/collection/collectionModel')
 const CollectionEvent = require('../modules/collection/collectionEventModel')
+const Notification = require('../modules/notification/notificationModel')
+const Report = require('../modules/report/reportModel')
 
 let initialized = false
 
@@ -34,6 +36,13 @@ function setupAssociations() {
   Event.hasMany(Comment, { foreignKey: 'eventId' })
   Comment.belongsTo(Event, { foreignKey: 'eventId', as: 'event' })
 
+  Notification.belongsTo(User, { as: 'Recipient', foreignKey: 'userId' })
+  Notification.belongsTo(User, { as: 'Actor', foreignKey: 'actorId' })
+  Notification.belongsTo(Event, { as: 'event', foreignKey: 'eventId' })
+
+  Report.belongsTo(User, { as: 'Reporter', foreignKey: 'userId' })
+  Report.belongsTo(Event, { as: 'event', foreignKey: 'eventId' })
+
   Follow.belongsTo(User, {
     as: 'Follower',
     foreignKey: 'followerId'
@@ -44,7 +53,6 @@ function setupAssociations() {
     foreignKey: 'followingId'
   })
 
-  // Coleções: relacionamento entre coleção e eventos.
   Collection.hasMany(CollectionEvent, {
     foreignKey: 'collectionId',
     as: 'items',

@@ -14,7 +14,19 @@ module.exports = {
     COLLECTION_DESCRIPTION_MAX: 500,
     IMAGE_MAX_BYTES: 5 * 1024 * 1024
   },
+  NOTIFICATION: {
+    TYPES: { LIKE: 'like', COMMENT: 'comment', FOLLOW: 'follow' }
+  },
 
+  REPORT: {
+    REASONS: {
+      INAPPROPRIATE_CONTENT: 'inappropriate_content',
+      HARASSMENT: 'harassment',
+      SPAM: 'spam',
+      COPYRIGHT: 'copyright',
+      OTHER: 'other'
+    }
+  },
   PAGINATION: {
     DEFAULT_PAGE: 1,
     DEFAULT_LIMIT: 12,

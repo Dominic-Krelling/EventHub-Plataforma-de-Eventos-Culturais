@@ -1,3 +1,4 @@
+
 <script setup>
 import { reactive } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -76,7 +77,7 @@ function toggle(collection) {
             @change="toggle(collection)"
           />
           <span class="name">{{ collection.title }}</span>
-          <i v-if="!collection.isPublic" class="bi bi-lock-fill" title="Privada" aria-label="Coleção privada">🔒</i>
+          <i v-if="!collection.isPublic" class="bi bi-lock-fill" title="Privada" aria-label="Coleção privada"></i>
           <small class="count">{{ collection.eventsCount }}</small>
         </label>
       </li>
@@ -93,7 +94,7 @@ function toggle(collection) {
 .row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; cursor: pointer; border-bottom: 1px solid #f0eef6; }
 .name { flex: 1; }
 .count { color: #777; }
-.bi-lock-fill { font-style: normal; font-size: 0.85rem; }
+.bi-lock-fill { font-size: 0.85rem; }
 .error { color: #c62828; }
 .btn-close { padding: 0.6rem 1rem; border: 0; border-radius: 8px; background: #6c4ab6; color: #fff; cursor: pointer; }
 </style>

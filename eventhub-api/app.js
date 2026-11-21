@@ -19,6 +19,8 @@ const likeRoutes = require('./modules/like/likeRoutes')
 const commentRoutes = require('./modules/comment/commentRoutes')
 const followRoutes = require('./modules/follow/followRoutes')
 const collectionRoutes = require('./modules/collection/collectionRoutes')
+const notificationRoutes = require('./modules/notification/notificationRoutes')
+const reportRoutes = require('./modules/report/reportRoutes')
 
 const { isAuthenticated } = require('./middlewares/auth')
 const errorHandler = require('./middlewares/errorHandler')
@@ -56,6 +58,8 @@ app.use('/api', likeRoutes)
 app.use('/api', commentRoutes)
 app.use('/api', followRoutes)
 app.use('/api', collectionRoutes)
+app.use('/api', notificationRoutes)
+app.use('/api', reportRoutes)
 
 app.use((req, res) => {
   res.status(404).json({

@@ -1,9 +1,11 @@
+
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useClickOutside } from '../composables/useClickOutside'
 import { getProfileImageUrl } from '../utils/media'
+import { logout as logoutRequest } from '../services/authServices'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -23,9 +25,16 @@ function onKeydown(event) {
   if (event.key === 'Escape') close()
 }
 
-function handleLogout() {
+async function handleLogout() {
   close()
-  authStore.logout() 
+
+  try {
+    await logoutRequest()
+  } catch {
+    // silent: sem toast
+  }
+
+  authStore.logout()
   router.push('/login')
 }
 
@@ -62,7 +71,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
       <li>
         <RouterLink to="/my-events" @click="close">Meus Itens</RouterLink>
       </li>
-            <li>
+      <li>
         <RouterLink to="/collections" @click="close">Minhas Coleções</RouterLink>
       </li>
       <li>

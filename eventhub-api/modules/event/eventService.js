@@ -8,12 +8,14 @@ const User = require('../user/userModel')
 const Like = require('../like/likeModel')
 const Comment = require('../comment/commentModel')
 const Follow = require('../follow/followModel')
+const Report = require('../report/reportModel')
+const Notification = require('../notification/notificationModel')
+
 const sequelize = require('../../config/database')
 const { PAGINATION } = require('../../config/constants')
 
 const Collection = require('../collection/collectionModel')
 const CollectionEvent = require('../collection/collectionEventModel')
-
 
 const publicUserAttributes = [
   'id',
@@ -166,13 +168,20 @@ async function getFollowingEvents(
 
   const followedIds = rows.map((row) => Number(row.followingId))
 
-  // Quem não segue ninguém: devolve cedo, sem rodar a consulta (Op.in com [] é inútil).
+  // Quem não segue ninguém: devolve cedo.
   if (followedIds.length === 0) return []
 
   return Event.findAll({
     attributes: [
-      'id', 'title', 'description', 'image', 'userId',
-      'likesCount', 'commentsCount', 'viewsCount', 'createdAt'
+      'id',
+      'title',
+      'description',
+      'image',
+      'userId',
+      'likesCount',
+      'commentsCount',
+      'viewsCount',
+      'createdAt'
     ],
     where: { userId: { [Op.in]: followedIds } },
     include: [{
@@ -280,7 +289,6 @@ async function removeEvent(id, userId) {
   const owner = await User.findByPk(userId)
 
   await sequelize.transaction(async (transaction) => {
-
     const links = await CollectionEvent.findAll({
       where: { eventId: event.id },
       attributes: ['collectionId'],
@@ -300,8 +308,25 @@ async function removeEvent(id, userId) {
       transaction
     })
 
-    await Like.destroy({ where: { eventId: event.id }, transaction })
-    await Comment.destroy({ where: { eventId: event.id }, transaction })
+    await Report.destroy({
+      where: { eventId: event.id },
+      transaction
+    })
+
+    await Notification.destroy({
+      where: { eventId: event.id },
+      transaction
+    })
+
+    await Like.destroy({
+      where: { eventId: event.id },
+      transaction
+    })
+
+    await Comment.destroy({
+      where: { eventId: event.id },
+      transaction
+    })
 
     await event.destroy({ transaction })
 

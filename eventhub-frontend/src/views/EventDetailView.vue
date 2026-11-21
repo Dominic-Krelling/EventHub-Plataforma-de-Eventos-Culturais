@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -7,10 +6,12 @@ import { getEventById } from '../services/eventServices'
 import { getEventImageUrl } from '../utils/media'
 import { useAsyncData } from '../composables/useAsyncData'
 import { useAuthenticatedAction } from '../composables/useAuthenticatedAction'
+import { useToast } from '../composables/useToast'
 
 import LikeButton from '../components/LikeButton.vue'
 import CommentSection from '../components/CommentSection.vue'
 import AddToCollectionModal from '../components/AddToCollectionModal.vue'
+import ReportEventModal from '../components/ReportEventModal.vue'
 
 const route = useRoute()
 
@@ -32,6 +33,21 @@ const commentsCount = ref(0)
 
 const { run: runSaveAction } = useAuthenticatedAction()
 const showSaveModal = ref(false)
+
+const toast = useToast()
+const { run: runReportAction } = useAuthenticatedAction()
+const showReportModal = ref(false)
+
+function openReportModal() {
+  return runReportAction(() => {
+    showReportModal.value = true
+  })
+}
+
+function handleReported() {
+  showReportModal.value = false
+  toast.success('Denúncia enviada. Obrigado por avisar.')
+}
 
 function openSaveModal() {
   return runSaveAction(() => {
@@ -116,6 +132,16 @@ watch(event, (loaded) => {
             Salvar
           </button>
 
+          <button
+            v-if="!event.isOwner"
+            type="button"
+            class="report-button"
+            @click="openReportModal"
+          >
+            <i class="bi bi-flag"></i>
+            Denunciar
+          </button>
+
           <span class="comments-counter">
             <i class="bi bi-chat"></i> {{ commentsCount }}
           </span>
@@ -125,6 +151,13 @@ watch(event, (loaded) => {
           v-if="showSaveModal"
           v-model="showSaveModal"
           :event-id="event.id"
+        />
+
+        <ReportEventModal
+          v-if="showReportModal"
+          v-model="showReportModal"
+          :event-id="event.id"
+          @reported="handleReported"
         />
 
         <CommentSection
@@ -173,6 +206,7 @@ watch(event, (loaded) => {
 .interactions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 18px;
   margin-top: 24px;
 }
@@ -188,6 +222,24 @@ watch(event, (loaded) => {
   color: #6c4ab6;
   cursor: pointer;
   font-size: 1rem;
+}
+
+.report-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #dc3545;
+  border-radius: 999px;
+  background: #fff;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.report-button:hover {
+  background: #dc3545;
+  color: #fff;
 }
 
 h1 {
@@ -206,7 +258,7 @@ h2 {
   color: #666;
   font-size: 14px;
 }
-.save-button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid #6c4ab6; border-radius: 999px; background: #fff; color: #6c4ab6; cursor: pointer; font-size: 1rem; }
+
 .description {
   white-space: pre-wrap;
   line-height: 1.7;
