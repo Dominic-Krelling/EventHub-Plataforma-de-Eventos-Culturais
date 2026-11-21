@@ -6,9 +6,11 @@ import { useRoute } from 'vue-router'
 import { getEventById } from '../services/eventServices'
 import { getEventImageUrl } from '../utils/media'
 import { useAsyncData } from '../composables/useAsyncData'
+import { useAuthenticatedAction } from '../composables/useAuthenticatedAction'
 
 import LikeButton from '../components/LikeButton.vue'
 import CommentSection from '../components/CommentSection.vue'
+import AddToCollectionModal from '../components/AddToCollectionModal.vue'
 
 const route = useRoute()
 
@@ -27,6 +29,15 @@ const {
 )
 
 const commentsCount = ref(0)
+
+const { run: runSaveAction } = useAuthenticatedAction()
+const showSaveModal = ref(false)
+
+function openSaveModal() {
+  return runSaveAction(() => {
+    showSaveModal.value = true
+  })
+}
 
 watch(event, (loaded) => {
   commentsCount.value = loaded?.commentsCount ?? 0
@@ -96,10 +107,25 @@ watch(event, (loaded) => {
             :initial-count="event.likesCount ?? 0"
           />
 
+          <button
+            type="button"
+            class="save-button"
+            @click="openSaveModal"
+          >
+            <i class="bi bi-bookmark-plus"></i>
+            Salvar
+          </button>
+
           <span class="comments-counter">
             <i class="bi bi-chat"></i> {{ commentsCount }}
           </span>
         </div>
+
+        <AddToCollectionModal
+          v-if="showSaveModal"
+          v-model="showSaveModal"
+          :event-id="event.id"
+        />
 
         <CommentSection
           :event-id="event.id"
@@ -151,6 +177,19 @@ watch(event, (loaded) => {
   margin-top: 24px;
 }
 
+.save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #6c4ab6;
+  border-radius: 999px;
+  background: #fff;
+  color: #6c4ab6;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
 h1 {
   color: #6c4ab6;
   margin-bottom: 15px;
@@ -167,7 +206,7 @@ h2 {
   color: #666;
   font-size: 14px;
 }
-
+.save-button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid #6c4ab6; border-radius: 999px; background: #fff; color: #6c4ab6; cursor: pointer; font-size: 1rem; }
 .description {
   white-space: pre-wrap;
   line-height: 1.7;

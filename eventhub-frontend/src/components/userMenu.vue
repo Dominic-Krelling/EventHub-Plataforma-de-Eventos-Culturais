@@ -62,6 +62,9 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
       <li>
         <RouterLink to="/my-events" @click="close">Meus Itens</RouterLink>
       </li>
+            <li>
+        <RouterLink to="/collections" @click="close">Minhas Coleções</RouterLink>
+      </li>
       <li>
         <button type="button" @click="handleLogout">Sair</button>
       </li>

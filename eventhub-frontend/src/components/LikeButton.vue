@@ -4,6 +4,7 @@ import { ref, watch } from 'vue'
 import { toggleLike } from '../services/likeService'
 import { formatCount } from '../utils/format'
 import { useAuthenticatedAction } from '../composables/useAuthenticatedAction'
+import { runOptimistic } from '../utils/optimistic'
 
 const props = defineProps({
   eventId: { type: [Number, String], required: true },
@@ -27,33 +28,38 @@ watch(
 )
 
 function handleClick() {
-  return run(async () => {
+  return run(() => {
     const previousLiked = liked.value
     const previousCount = count.value
 
-    const nowLiked = !previousLiked
+    return runOptimistic({
+      apply() {
+        const nowLiked = !previousLiked
 
-    liked.value = nowLiked
-    count.value = Math.max(
-      0,
-      previousCount + (nowLiked ? 1 : -1)
-    )
+        liked.value = nowLiked
+        count.value = Math.max(
+          0,
+          previousCount + (nowLiked ? 1 : -1)
+        )
 
-    try {
-      const response = await toggleLike(props.eventId)
-      const data = response.data?.data ?? response.data
+        return () => {
+          liked.value = previousLiked
+          count.value = previousCount
+        }
+      },
 
-      liked.value = data.liked
-      count.value = data.likesCount
+      request: () => toggleLike(props.eventId),
 
-      emit('change', {
-        liked: liked.value,
-        likesCount: count.value
-      })
-    } catch {
-      liked.value = previousLiked
-      count.value = previousCount
-    }
+      confirm(data) {
+        liked.value = data.liked
+        count.value = data.likesCount
+
+        emit('change', {
+          liked: liked.value,
+          likesCount: count.value
+        })
+      }
+    })
   })
 }
 </script>

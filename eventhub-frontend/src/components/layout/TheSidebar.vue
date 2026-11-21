@@ -13,6 +13,10 @@
     <router-link to="/search">
       Buscar
     </router-link>
+    
+    <router-link to="/collections">
+      Minhas Coleções
+    </router-link>
 
     <router-link to="/favorites">
       Favoritos

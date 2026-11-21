@@ -39,6 +39,17 @@ const routes = [
     name: 'search',
     component: () => import('../views/SearchView.vue')
   },
+    {
+    path: '/collections',
+    name: 'my-collections',
+    component: () => import('../views/collections/MyCollectionsView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/collections/:id',
+    name: 'collection-detail',
+    component: () => import('../views/collections/CollectionDetailView.vue')
+  },
   {
     path: '/notifications',
     name: 'notifications',
