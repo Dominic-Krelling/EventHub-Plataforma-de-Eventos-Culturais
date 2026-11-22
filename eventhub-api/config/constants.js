@@ -14,8 +14,13 @@ module.exports = {
     COLLECTION_DESCRIPTION_MAX: 500,
     IMAGE_MAX_BYTES: 5 * 1024 * 1024
   },
+
   NOTIFICATION: {
-    TYPES: { LIKE: 'like', COMMENT: 'comment', FOLLOW: 'follow' }
+    TYPES: {
+      LIKE: 'like',
+      COMMENT: 'comment',
+      FOLLOW: 'follow'
+    }
   },
 
   REPORT: {
@@ -25,8 +30,17 @@ module.exports = {
       SPAM: 'spam',
       COPYRIGHT: 'copyright',
       OTHER: 'other'
+    },
+    STATUS: {
+      PENDING: 'pending',
+      REVIEWED: 'reviewed'
     }
   },
+
+  ADMIN: {
+    REPORT_FILTERS: ['pending', 'reviewed', 'all']
+  },
+
   PAGINATION: {
     DEFAULT_PAGE: 1,
     DEFAULT_LIMIT: 12,

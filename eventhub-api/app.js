@@ -21,6 +21,7 @@ const followRoutes = require('./modules/follow/followRoutes')
 const collectionRoutes = require('./modules/collection/collectionRoutes')
 const notificationRoutes = require('./modules/notification/notificationRoutes')
 const reportRoutes = require('./modules/report/reportRoutes')
+const adminRoutes = require('./modules/admin/adminRoutes')
 
 const { isAuthenticated } = require('./middlewares/auth')
 const errorHandler = require('./middlewares/errorHandler')
@@ -60,6 +61,7 @@ app.use('/api', followRoutes)
 app.use('/api', collectionRoutes)
 app.use('/api', notificationRoutes)
 app.use('/api', reportRoutes)
+app.use('/api', adminRoutes)
 
 app.use((req, res) => {
   res.status(404).json({

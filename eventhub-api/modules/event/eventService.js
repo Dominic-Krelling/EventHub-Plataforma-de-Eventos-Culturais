@@ -270,7 +270,7 @@ async function updateEvent(id, userId, data, imageFilename) {
   return getEventDetails(event.id, userId)
 }
 
-async function removeEvent(id, userId) {
+async function removeEvent(id, userId, isAdmin = false) {
   const event = await Event.findByPk(id)
 
   if (!event) {
@@ -279,14 +279,14 @@ async function removeEvent(id, userId) {
     throw error
   }
 
-  if (Number(event.userId) !== Number(userId)) {
+  if (!isAdmin && Number(event.userId) !== Number(userId)) {
     const error = new Error('Você não tem permissão para excluir este evento.')
     error.status = 403
     throw error
   }
 
   const image = event.image
-  const owner = await User.findByPk(userId)
+  const owner = await User.findByPk(event.userId)
 
   await sequelize.transaction(async (transaction) => {
     const links = await CollectionEvent.findAll({

@@ -1,7 +1,10 @@
-import { ref } from 'vue'
+import { ref, watch as vueWatch } from 'vue'
 import { MESSAGES, PAGE_SIZE } from '../config/constants'
 
-export function usePaginatedList(fetchPage, { pageSize = PAGE_SIZE, immediate = true } = {}) {
+export function usePaginatedList(
+  fetchPage,
+  { pageSize = PAGE_SIZE, immediate = true, watch: source = null } = {}
+) {
   const items = ref([])
   const page = ref(1)
   const hasMore = ref(false)
@@ -51,6 +54,8 @@ export function usePaginatedList(fetchPage, { pageSize = PAGE_SIZE, immediate = 
   }
 
   if (immediate) load()
+
+  if (source) vueWatch(source, () => reload())
 
   return { items, hasMore, isLoading, error, loadMore, reload }
 }

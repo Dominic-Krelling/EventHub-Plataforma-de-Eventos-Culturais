@@ -117,13 +117,8 @@ async function loginUser(
     }
 
     if (user.isBlocked) {
-        const error =
-            new Error(
-                'Usuário bloqueado.'
-            );
-
+        const error = new Error('Sua conta foi bloqueada. Entre em contato com a administração.');
         error.status = 403;
-
         throw error;
     }
 

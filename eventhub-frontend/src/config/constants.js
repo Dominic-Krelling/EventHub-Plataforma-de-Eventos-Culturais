@@ -45,6 +45,12 @@ export const REPORT_REASONS = [
   { value: 'other', label: 'Outro' }
 ]
 
+export const REPORT_FILTERS = [
+  { value: 'pending', label: 'Pendentes' },
+  { value: 'reviewed', label: 'Revisadas' },
+  { value: 'all', label: 'Todas' }
+]
+
 export const PAGE_SIZE = 12
 
 export const TOAST_DURATION = {

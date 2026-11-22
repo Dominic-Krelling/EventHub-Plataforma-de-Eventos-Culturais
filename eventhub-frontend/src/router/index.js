@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { STORAGE_KEYS } from '../config/constants'
+import { useToast } from '../composables/useToast'
 
 const routes = [
   {
@@ -39,7 +40,7 @@ const routes = [
     name: 'search',
     component: () => import('../views/SearchView.vue')
   },
-    {
+  {
     path: '/collections',
     name: 'my-collections',
     component: () => import('../views/collections/MyCollectionsView.vue'),
@@ -73,7 +74,7 @@ const routes = [
     name: 'public-profile',
     component: () => import('../views/profile/PublicProfileView.vue')
   },
-    {
+  {
     path: '/profile/:username/followers',
     name: 'followers',
     component: () => import('../views/profile/FollowListView.vue'),
@@ -101,7 +102,7 @@ const routes = [
     path: '/liked-events',
     component: () => import('../views/events/LikedEventsView.vue'),
     meta: { requiresAuth: true }
-  }, 
+  },
   {
     path: '/events/create',
     name: 'event-create',
@@ -110,15 +111,31 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'admin-dashboard',
-    component: () => import('../views/admin/AdminDashboardView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/events',
-    name: 'admin-events',
-    component: () => import('../views/admin/AdminEventsView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
+    component: () => import('../components/layout/AdminLayout.vue'),
+    redirect: { name: 'admin-dashboard' },
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'admin-dashboard',
+        component: () => import('../views/admin/AdminDashboardView.vue')
+      },
+      {
+        path: 'reports',
+        name: 'admin-reports',
+        component: () => import('../views/admin/AdminReportsView.vue')
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        component: () => import('../views/admin/AdminUsersView.vue')
+      },
+      {
+        path: 'events',
+        name: 'admin-events',
+        component: () => import('../views/admin/AdminEventsView.vue')
+      }
+    ]
   },
   {
     path: '/admin/events/create',
@@ -133,18 +150,6 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/admin/users',
-    name: 'admin-users',
-    component: () => import('../views/admin/AdminUsersView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/reports',
-    name: 'admin-reports',
-    component: () => import('../views/admin/AdminReportsView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('../views/NotFoundView.vue')
@@ -156,26 +161,24 @@ const router = createRouter({
   routes
 })
 
+function readStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || 'null')
+  } catch {
+    return null
+  }
+}
+
 router.beforeEach((to) => {
   const token = localStorage.getItem(STORAGE_KEYS.TOKEN)
 
   if (to.meta.requiresAuth && !token) {
-    return {
-      name: 'login',
-      query: { redirect: to.fullPath }
-    }
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  if (to.meta.requiresAdmin && token) {
-    try {
-      const storedUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || 'null')
-
-      if (!storedUser?.isAdmin) {
-        return { name: 'feed' }
-      }
-    } catch {
-      return { name: 'feed' }
-    }
+  if (to.meta.requiresAdmin && !readStoredUser()?.isAdmin) {
+    useToast().error('Você não tem permissão para acessar a administração.')
+    return { name: 'feed' }
   }
 
   return true
